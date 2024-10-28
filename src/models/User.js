@@ -1,76 +1,133 @@
 const mongoose = require('mongoose');
 
-// Definindo os esquemas
+const AlternativasSchema = new mongoose.Schema({
+    alternativa: { type: String, required: true },
+    resultadoAlternativa: { type: Boolean, required: true }
+});
+
+const ExerciciosSchema = new mongoose.Schema({
+    exercicioId: { type: mongoose.Schema.Types.ObjectId, required: true, default: () => new mongoose.Types.ObjectId() }, // ID único para cada exercício
+    midia: { type: String, required: true },
+    enunciado: { type: String, required: true },
+    exercicio: { type: String, required: false },
+    alternativas: [{ type: AlternativasSchema, required: true }],
+    pontuacao: { type: Number, required: true }
+});
+
+const AtividadesSchema = new mongoose.Schema({
+    fotoDaAtividade: { type: String, required: false },
+    tipoDeAtividade: { type: String, required: true },
+    exercicios: [ExerciciosSchema], // Array de exercícios
+    pontuacaoTotalAtividade: { type: Number, required: true }
+});
+
+const GrupoAtividadesSchema = new mongoose.Schema({
+    numeroAtividade: { type: Number, required: true },
+    criador: { 
+        id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        nome: { type: String, required: true }
+    },
+    dominio: [{ type: String, required: true }],
+    atividades: [AtividadesSchema], // Salvando os objetos completos das atividades
+    pontuacaoTotalDoGrupo: { type: Number, required: true }
+});
+
+// Esquema para Grupos de Atividades em Andamento
+const GruposDeAtividadesEmAndamentoSchema = new mongoose.Schema({
+    grupoAtividadesId: { type: mongoose.Schema.Types.ObjectId, ref: 'GrupoAtividades', required: true },
+    dataInicio: { type: Date, required: true },
+    respostas: [
+        {
+            exercicioId: { type: mongoose.Schema.Types.ObjectId, required: true },
+            isCorreta: { type: Boolean, required: true }
+        }
+    ]
+});
+
+// Esquema para Grupos de Atividades Finalizadas
+const GruposDeAtividadesFinalizadasSchema = new mongoose.Schema({
+    grupoAtividadesId: { type: mongoose.Schema.Types.ObjectId, ref: 'GrupoAtividades', required: true },
+    dataInicio: { type: Date, required: true },
+    dataFinalizada: { type: Date, required: true },
+    respostasFinais: { type: Number, required: true },
+    pontuacaoFinal: { type: Number, required: true }
+});
+
+// Esquema para Diagnóstico
 const DiagnosticoSchema = new mongoose.Schema({
     titulo: { type: String, required: false },
     conteudo: { type: String, required: false }
 });
 
+// Esquema para Descrição
 const DescricaoSchema = new mongoose.Schema({
-    titulo: { type: String, required: false },
-    conteudo: { type: String, required: false }
+    autor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    nomeAutor: { type: String, required: true }, // Adicionado o nome do autor
+    comentario: { type: String, required: true }
 });
 
-const RespostasSalvasSchema = new mongoose.Schema({
-    id: { type: Number, required: false },
-    resposta: { type: String, required: false },
-    resultado: { type: String, required: false }
+// Esquema para Profissional
+const ProfissionalSchema = new mongoose.Schema({
+    idDoProfissional: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    nome: { type: String, required: true } // Adicionado o nome do profissional
 });
 
-const AtividadeEmAndamentoSchema = new mongoose.Schema({
-    id: { type: Number, required: false },
-    idDaAtividade: { type: Number, required: false },
-    respostasSalvas: [{ type: RespostasSalvasSchema, required: false }],
-    pontuacaoSalva: { type: Number, required: false },
-    dataInicio: { type: String, required: false }
+// Esquema para Pacientes
+const PacientesSchema = new mongoose.Schema({
+    idDoPaciente: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    nome: { type: String, required: true } // Adicionado o nome do paciente
 });
 
-const AtividadeFinalizadaSchema = new mongoose.Schema({
-    idAtividade: { type: String, required: false },
-    dataInicio: { type: String, required: false },
-    dataFinalizada: { type: String, required: false },
-    pontuacao: { type: Number, required: false }
-});
-
-const QuestaoSchema = new mongoose.Schema({
-    resposta: { type: String, required: false },
-    resultado: { type: Boolean, required: false }
-});
-
-const ExerciciosSchema = new mongoose.Schema({
-    enunciado: { type: String, required: false },
-    questoes: [{ type: QuestaoSchema, required: false }] // Nota que coloquei colchetes aqui
-});
-
+// Esquema para Usuários
 const UserSchema = new mongoose.Schema({
-    email: { type: String, required: true },
+    tipoDeConta: { type: String, required: true },
+    conquistas: [{ type: String, required: false }],
+    validade: { type: String, required: false },
+    moeda: { type: Number, required: false },
+    nivel: { type: Number, required: false },
     nome: { type: String, required: true },
-    telefone: { type: Number, required: true },
+    email: { type: String, required: true },
+    telefone: { type: String, required: true },
     dataDeNascimento: { type: String, required: true },
     senha: { type: String, required: true },
-    tipoDeConta: { type: String, required: true },
-    profissional: { type: [String], required: true },
-    foto: { type: String, required: true },
-    acesso: { type: [String], required: false },
-    diagnostico: [{ type: DiagnosticoSchema, required: false }],
-    descricao: [{ type: DescricaoSchema, required: false }],
-    atividadeEmAndamento: { type: AtividadeEmAndamentoSchema, required: false }, // Modificação feita aqui
-    atividadeFinalizada: [{ type: AtividadeFinalizadaSchema, required: false }],
-    pacientes: { type: [String], required: false },
-    atividadesCriadas: [{ type: mongoose.Schema.Types.ObjectId, ref: 'AtividadeCriada', required: false }]
-});
-
-const AtividadeCriadasSchema = new mongoose.Schema({
-    autor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Usando referência e tornando obrigatório
-    grupo: { type: [String], required: false },
-    titulo: { type: String, required: false },
-    descricao: { type: String, required: false },
-    icone: { type: String, required: false },
-    exercicios: [{ type: ExerciciosSchema, required: false }]
+    recuperarSenha: { type: String, required: false },
+    foto: { type: String, required: false },
+    profissional: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Profissional', required: false }],
+    diagnostico: { type: mongoose.Schema.Types.ObjectId, ref: 'Diagnostico', required: false },
+    grupo: [{ type: String, required: false }],
+    gruposDeAtividadesEmAndamento: [GruposDeAtividadesEmAndamentoSchema],
+    gruposDeAtividadesFinalizadas: [GruposDeAtividadesFinalizadasSchema],
+    descricao: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Descricao', required: false }],
+    pacientes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Pacientes', required: false }],
+    gruposDeAtividadesCriadas: [{ type: mongoose.Schema.Types.ObjectId, ref: 'GrupoAtividades', required: false }],
+    pontuacoesPorGrupo: [
+        {
+            grupoId: { type: mongoose.Schema.Types.ObjectId, ref: 'GrupoAtividades', required: false },
+            pontuacao: { type: Number, required: false }
+        }
+    ]
 });
 
 // Modelos
 const User = mongoose.model('User', UserSchema);
-const AtividadeCriada = mongoose.model('AtividadeCriada', AtividadeCriadasSchema);
+const GrupoAtividades = mongoose.model('GrupoAtividades', GrupoAtividadesSchema);
+const GruposDeAtividadesEmAndamento = mongoose.model('GruposDeAtividadesEmAndamento', GruposDeAtividadesEmAndamentoSchema);
+const GruposDeAtividadesFinalizadas = mongoose.model('GruposDeAtividadesFinalizadas', GruposDeAtividadesFinalizadasSchema);
+const Atividades = mongoose.model('Atividades', AtividadesSchema);
+const Exercicios = mongoose.model('Exercicios', ExerciciosSchema);
+const Alternativas = mongoose.model('Alternativas', AlternativasSchema);
+const Profissional = mongoose.model('Profissional', ProfissionalSchema);
+const Pacientes = mongoose.model('Pacientes', PacientesSchema);
 
-module.exports = { User, AtividadeCriada };
+// Exportação dos Modelos
+module.exports = {
+    User,
+    GrupoAtividades,
+    GruposDeAtividadesEmAndamento,
+    GruposDeAtividadesFinalizadas,
+    Atividades,
+    Exercicios,
+    Alternativas,
+    Profissional,
+    Pacientes
+};

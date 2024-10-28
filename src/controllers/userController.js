@@ -12,8 +12,8 @@ const getUser = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-    const { email, nome, telefone, dataDeNascimento, senha, confirmarSenha, tipoDeConta, profissional } = req.body;
-    if (!email || !nome || !telefone || !dataDeNascimento || !senha || senha !== confirmarSenha || !tipoDeConta || !profissional) {
+    const { email, nome, telefone, dataDeNascimento, senha, confirmarSenha, tipoDeConta, profissional, moeda, validade, nivel } = req.body;
+    if (!email || !nome || !telefone || !dataDeNascimento || !senha || senha !== confirmarSenha || !tipoDeConta) {
         return res.status(422).json({ message: 'Campos obrigatórios faltando ou senhas não conferem!' });
     }
     const userExists = await User.findOne({ email });
@@ -22,7 +22,7 @@ const createUser = async (req, res) => {
     }
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(senha, salt);
-    const user = new User({ email, nome, telefone, dataDeNascimento, senha: passwordHash, tipoDeConta, profissional });
+    const user = new User({ email, nome, telefone, dataDeNascimento, senha: passwordHash, tipoDeConta, profissional, moeda, validade, nivel });
     try {
         await user.save();
         res.status(201).json({ msg: 'Usuário criado com sucesso' });
@@ -69,12 +69,13 @@ const loginUser = async (req, res) => {
     }
     try {
         const secret = process.env.SECRET;
-        const token = jwt.sign({ id: user._id }, secret, { expiresIn: '1h' });
-        res.status(200).json({ msg: 'Autenticação realizada com sucesso', token });
+        const token = jwt.sign({ id: user._id, tipoDeConta: user.tipoDeConta }, secret);
+        res.status(200).json({ msg: 'Autenticação realizada com sucesso', token, tipoDeConta: user.tipoDeConta });
     } catch (err) {
         console.log(err);
         res.status(500).json({ msg: 'Erro ao autenticar usuário' });
     }
 };
+
 
 module.exports = { getUser, createUser, updateUser, deleteUser, loginUser };
