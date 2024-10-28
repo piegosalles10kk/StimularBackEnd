@@ -40,6 +40,20 @@
  *               email:
  *                 type: string
  *                 example: "usuario@example.com"
+ *               tipoDeConta:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["tipo1", "tipo2"]
+ *               profissional:
+ *                 type: object
+ *                 properties:
+ *                   idDoProfissional:
+ *                     type: string
+ *                     example: "12345"
+ *                   nomeDoProfissional:
+ *                     type: string
+ *                     example: "João Silva"
  *               ...
  *     responses:
  *       201:
