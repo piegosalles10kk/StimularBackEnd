@@ -105,7 +105,9 @@ const UserSchema = new mongoose.Schema({
             grupoId: { type: mongoose.Schema.Types.ObjectId, ref: 'GrupoAtividades', required: false },
             pontuacao: { type: Number, required: false }
         }
-    ]
+    ],
+    recupararSenha: { type: Boolean, required: false },
+    codigoRecuperarSenha: { type: String, required: false }
 });
 
 // Modelos

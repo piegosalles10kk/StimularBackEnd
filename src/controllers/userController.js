@@ -2,6 +2,12 @@ const { User } = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+
+const getAllUser = async (req, res) => {
+    const users = await User.find({},'-senha');
+    res.status(200).json({ users });
+};
+
 const getUser = async (req, res) => {
     const id = req.params.id;
     const user = await User.findById(id, '-senha');
@@ -78,4 +84,4 @@ const loginUser = async (req, res) => {
 };
 
 
-module.exports = { getUser, createUser, updateUser, deleteUser, loginUser };
+module.exports = { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser };
