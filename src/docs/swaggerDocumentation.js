@@ -23,9 +23,118 @@
  *   name: User
  *   description: Operações relacionadas a usuários.
  */
+ 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         email:
+ *           type: string
+ *           example: "usuario@example.com"
+ *         nome:
+ *           type: string
+ *           example: "João Silva"
+ *         telefone:
+ *           type: string
+ *           example: "11976008411"
+ *         dataDeNascimento:
+ *           type: string
+ *           format: date
+ *           example: "1999-10-13"
+ *         senha:
+ *           type: string
+ *           example: "12345"
+ *         confirmarSenha:
+ *           type: string
+ *           example: "12345"
+ *         tipoDeConta:
+ *           type: array
+ *           items:
+ *             type: string
+ *           example: ["tipo1", "tipo2"]
+ *         profissional:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Profissional'
+ *         validade:
+ *           type: string
+ *           format: date
+ *           example: "2024-10-31"
+ *         moeda:
+ *           type: number
+ *           example: 1
+ *         nivel:
+ *           type: number
+ *           example: 1
+ *
+ *     Profissional:
+ *       type: object
+ *       properties:
+ *         idDoProfissional:
+ *           type: string
+ *           example: "12345"
+ *         nomeDoProfissional:
+ *           type: string
+ *           example: "João Silva"
+ *
+ *     Exercicio:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         nome:
+ *           type: string
+ *           example: "Exercício 1"
+ *         descricao:
+ *           type: string
+ *           example: "Descrição do exercício 1"
+ *         nivel:
+ *           type: string
+ *           example: "Fácil"
+ *         tipo:
+ *           type: string
+ *           example: "Treino"
+ *
+ * /exercicios:
+ *   get:
+ *     tags: [Exercicios]
+ *     summary: Obter todos os exercícios.
+ *     security:
+ *       - Bearer: []
+ *     responses:
+ *       200:
+ *         description: Lista de exercícios.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Exercicio'
+ *       500:
+ *         description: Erro ao obter os exercícios.
+ */
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     Profissional:
+ *       type: object
+ *       properties:
+ *         idDoProfissional:
+ *           type: string
+ *           example: "12345"
+ *         nomeDoProfissional:
+ *           type: string
+ *           example: "João Silva"
+ *
  * /auth/register:
  *   post:
  *     tags: [User]
@@ -40,26 +149,81 @@
  *               email:
  *                 type: string
  *                 example: "usuario@example.com"
+ *               nome:
+ *                 type: string
+ *                 example: "João Silva"
+ *               telefone:
+ *                 type: string
+ *                 example: "11976008411"
+ *               dataDeNascimento:
+ *                 type: string
+ *                 format: date
+ *                 example: "1999-10-13"
+ *               senha:
+ *                 type: string
+ *                 example: "12345"
+ *               confirmarSenha:
+ *                 type: string
+ *                 example: "12345"
  *               tipoDeConta:
  *                 type: array
  *                 items:
  *                   type: string
  *                 example: ["tipo1", "tipo2"]
  *               profissional:
- *                 type: object
- *                 properties:
- *                   idDoProfissional:
- *                     type: string
- *                     example: "12345"
- *                   nomeDoProfissional:
- *                     type: string
- *                     example: "João Silva"
- *               ...
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/Profissional'
+ *               validade:
+ *                 type: string
+ *                 format: date
+ *                 example: "2024-10-31"
+ *               moeda:
+ *                 type: number
+ *                 example: 1
+ *               nivel:
+ *                 type: number
+ *                 example: 1
  *     responses:
  *       201:
  *         description: Usuário criado com sucesso.
- *       ...
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 1
+ *                 email:
+ *                   type: string
+ *                   example: "usuario@example.com"
+ *                 nome:
+ *                   type: string
+ *                   example: "João Silva"
+ *       400:
+ *         description: Erro de validação.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Erro de validação"
+ *       500:
+ *         description: Erro interno do servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Erro interno do servidor"
  */
+
+
 
 /**
  * @swagger
@@ -107,6 +271,113 @@
  *       200:
  *         description: Informações do usuário.
  *       ...
+ */
+
+/**
+ * @swagger
+ * /user/{id}:
+ *   put:
+ *     tags: [User]
+ *     summary: Atualiza um usuário existente.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID do usuário a ser atualizado.
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: "usuario@example.com"
+ *               nome:
+ *                 type: string
+ *                 example: "João Silva"
+ *               telefone:
+ *                 type: string
+ *                 example: "11976008411"
+ *               dataDeNascimento:
+ *                 type: string
+ *                 format: date
+ *                 example: "1999-10-13"
+ *               senha:
+ *                 type: string
+ *                 example: "12345"
+ *               confirmarSenha:
+ *                 type: string
+ *                 example: "12345"
+ *               tipoDeConta:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["tipo1", "tipo2"]
+ *               profissional:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/Profissional'
+ *               validade:
+ *                 type: string
+ *                 format: date
+ *                 example: "2024-10-31"
+ *               moeda:
+ *                 type: number
+ *                 example: 1
+ *               nivel:
+ *                 type: number
+ *                 example: 1
+ *     responses:
+ *       200:
+ *         description: Usuário atualizado com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                   example: 1
+ *                 email:
+ *                   type: string
+ *                   example: "usuario@example.com"
+ *                 nome:
+ *                   type: string
+ *                   example: "João Silva"
+ *       400:
+ *         description: Erro de validação.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Erro de validação"
+ *       404:
+ *         description: Usuário não encontrado.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Usuário não encontrado"
+ *       500:
+ *         description: Erro interno do servidor.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Erro interno do servidor"
  */
 
 /**
@@ -318,6 +589,82 @@
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     GrupoAtividades:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         nome:
+ *           type: string
+ *           example: "Grupo de Atividades 1"
+ *         descricao:
+ *           type: string
+ *           example: "Descrição do grupo de atividades 1"
+ *         atividades:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Atividade'
+ *
+ *     Atividade:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         nome:
+ *           type: string
+ *           example: "Atividade 1"
+ *         descricao:
+ *           type: string
+ *           example: "Descrição da atividade 1"
+ *         exercicios:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Exercicio'
+ *
+ *     Exercicio:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         nome:
+ *           type: string
+ *           example: "Exercício 1"
+ *         descricao:
+ *           type: string
+ *           example: "Descrição do exercício 1"
+ *         nivel:
+ *           type: string
+ *           example: "Fácil"
+ *         tipo:
+ *           type: string
+ *           example: "Treino"
+ *
+ * /grupoAtividades:
+ *   get:
+ *     tags: [Grupo Atividades]
+ *     summary: Obter todos os grupos de atividades.
+ *     security:
+ *       - Bearer: []
+ *     responses:
+ *       200:
+ *         description: Lista de grupos de atividades.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/GrupoAtividades'
+ *       500:
+ *         description: Erro ao obter os grupos de atividades.
+ */
+
+/**
+ * @swagger
  * tags:
  *   - name: Grupo Atividades
  *     description: Operações relacionadas a grupos de atividades.
@@ -496,6 +843,55 @@
 
 /**
  * @swagger
+ * /grupoatividades:
+ *   get:
+ *     tags: [Grupo Atividades]
+ *     summary: Obter todos os grupos de atividades.
+ *     security:
+ *       - Bearer: []
+ *     responses:
+ *       200:
+ *         description: Lista de grupos de atividades.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/GrupoAtividades'
+ *       500:
+ *         description: Erro ao obter os grupos de atividades.
+ *
+ *   patch:
+ *     tags: [Grupo Atividades]
+ *     summary: Adicionar exercícios a uma atividade.
+ *     security:
+ *       - Bearer: []
+ *     parameters:
+ *       - in: path
+ *         name: atividadeId
+ *         required: true
+ *         description: ID da atividade.
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Exercicio'
+ *     responses:
+ *       200:
+ *         description: Exercício adicionado com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Exercicio'
+ *       400:
+ *         description: Erro ao adicionar o exercício.
+ */
+
+/**
+ * @swagger
  * /grupoatividades/{id}/atividades:
  *   post:
  *     tags: [Atividades]
@@ -657,7 +1053,7 @@
 /**
  * @swagger
  * /grupoatividades/{grupoAtividadeId}/atividades/{atividadeId}/exercicios:
- *   patch:
+ *   post:
  *     tags: [Exercicios]
  *     summary: Adicionar Exercício a uma Atividade em um Grupo.
  *     security:
@@ -693,35 +1089,7 @@
  *         description: Erro ao criar exercício.
  */
 
-/**
- * @swagger
- * /grupoatividades/{grupoAtividadeId}/atividades/{atividadeId}/exercicios/{exercicioId}:
- *   get:
- *     tags: [Exercicios]
- *     summary: Obter Exercício específico.
- *     security:
- *       - Bearer: []
- *     parameters:
- *       - in: path
- *         name: grupoAtividadeId
- *         required: true
- *         description: ID do grupo de atividades.
- *       - in: path
- *         name:atividadeId
- *         required: true
- *         description: ID da atividade.
- *       - in: path
- *         name:exercicioId
- *         required: true
- *         description: ID do exercício.
- *     responses:
- *       200:
- *         description: Exercício encontrado.
- *       404:
- *         description: Grupo de Atividades, Atividade ou Exercício não encontrado.
- *       500:
- *         description: Erro ao obter exercício.
- */
+
 
 /**
  * @swagger
