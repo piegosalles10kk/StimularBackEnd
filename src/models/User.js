@@ -81,7 +81,7 @@ const PacientesSchema = new mongoose.Schema({
 // Esquema para Usuários
 const UserSchema = new mongoose.Schema({
     tipoDeConta: { type: String, required: true },
-    conquistas: [{ type: String, required: false }],
+    conquistas: [{ type: Object, required: false }],
     validade: { type: String, required: false },
     moeda: { type: Number, required: false },
     nivel: { type: Number, required: false },
