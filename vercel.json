@@ -3,26 +3,14 @@
     "builds": [
       {
         "src": "app.js",
-        "use": "@vercel/static-build"
+        "use": "@vercel/node"
       }
     ],
-    "routes": [
+    "routes": 
       {
-        "src": "/grupoatividades",
+        "src": "/(.*)",
         "dest": "app.js"
-      },
-      {
-        "src": "/atividades/:atividadeId/exercicios",
-        "dest": "app.js"
-      },
-      {
-        "src": "/docs",
-        "dest": "swagger.json"
       }
-    ],
-    "functions": {
-      "app.js": {
-        "runtime": "nodejs14.x"
-      }
+      
     }
-  }
+  
