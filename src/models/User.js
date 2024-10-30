@@ -92,7 +92,7 @@ const UserSchema = new mongoose.Schema({
     senha: { type: String, required: true },
     recuperarSenha: { type: String, required: false },
     foto: { type: String, required: false },
-    profissional: [ProfissionalSchema], // Aceitar objetos completos    
+    profissional: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Profissional', required: false }],
     diagnostico: { type: mongoose.Schema.Types.ObjectId, ref: 'Diagnostico', required: false },
     grupo: [{ type: String, required: false }],
     gruposDeAtividadesEmAndamento: [GruposDeAtividadesEmAndamentoSchema],
