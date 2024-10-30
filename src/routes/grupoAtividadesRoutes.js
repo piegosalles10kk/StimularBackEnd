@@ -4,10 +4,10 @@ const { getGrupoAtividades, createGrupoAtividades, updateGrupoAtividades, delete
 const checkToken = require('../middleware/checkToken');
 
 router.post('/grupoatividades', checkToken, createGrupoAtividades);
+router.get('/grupoatividades', checkToken, filterGrupoAtividades);
 router.get('/grupoatividades/:id', checkToken, getGrupoAtividades);
 router.put('/grupoatividades/:id', checkToken, updateGrupoAtividades);
 router.delete('/grupoatividades/:id', checkToken, deleteGrupoAtividades);
-router.get('/grupoatividades', checkToken, filterGrupoAtividades);
 router.patch('/atividades/:atividadeId/exercicios', checkToken, addExercicioToAtividade);
 
 module.exports = router;
