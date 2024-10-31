@@ -17,7 +17,7 @@ const ExerciciosSchema = new mongoose.Schema({
 const AtividadesSchema = new mongoose.Schema({
     fotoDaAtividade: { type: String, required: false },
     tipoDeAtividade: { type: String, required: true },
-    exercicios: [ExerciciosSchema], // Array de exercícios
+    exercicios: [ExerciciosSchema], 
     pontuacaoTotalAtividade: { type: Number, required: true }
 });
 
@@ -28,7 +28,7 @@ const GrupoAtividadesSchema = new mongoose.Schema({
         nome: { type: String, required: true }
     },
     dominio: [{ type: String, required: true }],
-    atividades: [AtividadesSchema], // Salvando os objetos completos das atividades
+    atividades: [AtividadesSchema], 
     pontuacaoTotalDoGrupo: { type: Number, required: true }
 });
 
@@ -93,13 +93,13 @@ const UserSchema = new mongoose.Schema({
     recuperarSenha: { type: String, required: false },
     foto: { type: String, required: false },
     profissional: [ProfissionalSchema],
-    diagnostico: { type: mongoose.Schema.Types.ObjectId, ref: 'Diagnostico', required: false },
+    diagnostico: [DiagnosticoSchema],
     grupo: [{ type: String, required: false }],
     gruposDeAtividadesEmAndamento: [GruposDeAtividadesEmAndamentoSchema],
     gruposDeAtividadesFinalizadas: [GruposDeAtividadesFinalizadasSchema],
-    descricao: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Descricao', required: false }],
-    pacientes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Pacientes', required: false }],
-    gruposDeAtividadesCriadas: [{ type: mongoose.Schema.Types.ObjectId, ref: 'GrupoAtividades', required: false }],
+    descricao: [DescricaoSchema],
+    pacientes: [PacientesSchema],
+    gruposDeAtividadesCriadas: [GrupoAtividadesSchema],
     pontuacoesPorGrupo: [
         {
             grupoId: { type: mongoose.Schema.Types.ObjectId, ref: 'GrupoAtividades', required: false },
