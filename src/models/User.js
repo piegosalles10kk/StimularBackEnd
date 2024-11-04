@@ -22,6 +22,7 @@ const AtividadesSchema = new mongoose.Schema({
 });
 
 const GrupoAtividadesSchema = new mongoose.Schema({
+    nomeGrupo: { type: String, required: true },
     numeroAtividade: { type: Number, required: true },
     criador: { 
         id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
