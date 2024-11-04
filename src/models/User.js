@@ -25,6 +25,7 @@ const GrupoAtividadesSchema = new mongoose.Schema({
     nomeGrupo: { type: String, required: true },
     imagem: { type: String, required: true },
     numeroAtividade: { type: Number, required: true },
+    descricao: { type: String, required: true },
     criador: { 
         id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
         nome: { type: String, required: true }
