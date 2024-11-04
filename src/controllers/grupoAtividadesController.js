@@ -148,7 +148,7 @@ const addExercicioToAtividade = async (req, res) => {
 };
 
 const filterGrupoAtividadesByNivel = async (req, res) => {
-    const nivel = req.body.nivel; // lê o valor do nível do corpo da requisição
+    const nivel = req.query.nivel; // lê o valor do nível do corpo da requisição
     //console.log('Nível:', nivel); 
 
   try {
