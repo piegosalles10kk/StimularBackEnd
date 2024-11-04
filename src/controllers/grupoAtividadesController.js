@@ -15,7 +15,7 @@ const getGrupoAtividades = async (req, res) => {
 const createGrupoAtividades = async (req, res) => {
     const criadorId = req.user._id; // Pegando o id do criador a partir do token de autenticação
     console.log('Criador ID:', criadorId); // Log do ID do criador
-    const { nomeGrupo, numeroAtividade, imagem, dominio, descricao, atividades, pontuacaoTotalDoGrupo } = req.body;
+    const { nomeGrupo, nivelDaAtividade, imagem, dominio, descricao, atividades, pontuacaoTotalDoGrupo } = req.body;
     console.log('Payload recebido:', req.body); // Log do payload recebido
     
     try {
@@ -36,7 +36,7 @@ const createGrupoAtividades = async (req, res) => {
 
         const grupoAtividades = new GrupoAtividades({
             nomeGrupo,
-            numeroAtividade,
+            nivelDaAtividade,
             imagem,
             descricao,
             criador: { id: criadorId, nome: criador.nome },
@@ -58,7 +58,7 @@ const createGrupoAtividades = async (req, res) => {
 const updateGrupoAtividades = async (req, res) => {
     const id = req.params.id;
     const updates = Object.keys(req.body);
-    const allowedUpdates = ['numeroAtividade', 'criador', 'dominio','imagem','descricao', 'nomeGrupo', 'atividades', 'pontuacaoTotalDoGrupo'];
+    const allowedUpdates = ['nivelDaAtividade', 'criador', 'dominio','imagem','descricao', 'nomeGrupo', 'atividades', 'pontuacaoTotalDoGrupo'];
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
 
     if (!isValidOperation) {
