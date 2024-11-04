@@ -15,7 +15,7 @@ const getGrupoAtividades = async (req, res) => {
 const createGrupoAtividades = async (req, res) => {
     const criadorId = req.user._id; // Pegando o id do criador a partir do token de autenticação
     console.log('Criador ID:', criadorId); // Log do ID do criador
-    const { numeroAtividade, dominio, atividades, pontuacaoTotalDoGrupo } = req.body;
+    const { nomeGrupo, numeroAtividade, dominio, atividades, pontuacaoTotalDoGrupo } = req.body;
     console.log('Payload recebido:', req.body); // Log do payload recebido
     
     try {
@@ -35,6 +35,7 @@ const createGrupoAtividades = async (req, res) => {
         }
 
         const grupoAtividades = new GrupoAtividades({
+            nomeGrupo,
             numeroAtividade,
             criador: { id: criadorId, nome: criador.nome },
             dominio,
