@@ -15,6 +15,7 @@ const ExerciciosSchema = new mongoose.Schema({
 });
 
 const AtividadesSchema = new mongoose.Schema({
+    nomdeDaAtividade: { type: String, required: true },
     fotoDaAtividade: { type: String, required: false },
     tipoDeAtividade: { type: String, required: true },
     exercicios: [ExerciciosSchema], 
