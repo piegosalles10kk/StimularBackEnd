@@ -23,6 +23,7 @@ const AtividadesSchema = new mongoose.Schema({
 
 const GrupoAtividadesSchema = new mongoose.Schema({
     nomeGrupo: { type: String, required: true },
+    imagem: { type: String, required: true },
     numeroAtividade: { type: Number, required: true },
     criador: { 
         id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -33,7 +34,6 @@ const GrupoAtividadesSchema = new mongoose.Schema({
     pontuacaoTotalDoGrupo: { type: Number, required: true }
 });
 
-// Esquema para Grupos de Atividades em Andamento
 const GruposDeAtividadesEmAndamentoSchema = new mongoose.Schema({
     grupoAtividadesId: { type: mongoose.Schema.Types.ObjectId, ref: 'GrupoAtividades', required: true },
     dataInicio: { type: Date, required: true },

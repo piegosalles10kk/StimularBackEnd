@@ -15,7 +15,7 @@ const getGrupoAtividades = async (req, res) => {
 const createGrupoAtividades = async (req, res) => {
     const criadorId = req.user._id; // Pegando o id do criador a partir do token de autenticação
     console.log('Criador ID:', criadorId); // Log do ID do criador
-    const { nomeGrupo, numeroAtividade, dominio, atividades, pontuacaoTotalDoGrupo } = req.body;
+    const { nomeGrupo, numeroAtividade, imagem, dominio, atividades, pontuacaoTotalDoGrupo } = req.body;
     console.log('Payload recebido:', req.body); // Log do payload recebido
     
     try {
@@ -26,7 +26,7 @@ const createGrupoAtividades = async (req, res) => {
             return res.status(404).json({ message: 'Criador não encontrado!' });
         }
 
-        // Modificação: salvar os exercícios diretamente dentro das atividades
+        //salvar os exercícios diretamente dentro das atividades
         const savedAtividades = [];
         for (const atividade of atividades) {
             const newAtividade = new Atividades(atividade);
@@ -37,6 +37,7 @@ const createGrupoAtividades = async (req, res) => {
         const grupoAtividades = new GrupoAtividades({
             nomeGrupo,
             numeroAtividade,
+            imagem,
             criador: { id: criadorId, nome: criador.nome },
             dominio,
             atividades: savedAtividades, // Salvando os objetos completos das atividades
