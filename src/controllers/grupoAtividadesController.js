@@ -147,11 +147,28 @@ const addExercicioToAtividade = async (req, res) => {
     }
 };
 
+const filterGrupoAtividadesByNivel = async (req, res) => {
+    const nivel = req.body.nivel; // lê o valor do nível do corpo da requisição
+    //console.log('Nível:', nivel); 
+
+  try {
+    const atividades = await GrupoAtividades.find({ nivelDaAtividade: { $lte: nivel } });
+    if (!atividades.length) {
+      return res.status(404).json({ msg: 'Nenhuma atividade encontrada com o nível fornecido' });
+    }
+    res.status(200).json({ atividades });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: 'Erro ao buscar atividades' });
+  }
+};
+
 module.exports = {
     getGrupoAtividades,
     createGrupoAtividades,
     updateGrupoAtividades,
     deleteGrupoAtividades,
     filterGrupoAtividades,
-    addExercicioToAtividade
+    addExercicioToAtividade,
+    filterGrupoAtividadesByNivel
 };

@@ -75,7 +75,7 @@ const loginUser = async (req, res) => {
     }
     try {
         const secret = process.env.SECRET;
-        const token = jwt.sign({ id: user._id, tipoDeConta: user.tipoDeConta }, secret);
+        const token = jwt.sign({ id: user._id, tipoDeConta: user.tipoDeConta, nivel: user.nivel }, secret);
         res.status(200).json({ msg: 'Autenticação realizada com sucesso', token, tipoDeConta: user.tipoDeConta });
     } catch (err) {
         console.log(err);
