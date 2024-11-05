@@ -148,20 +148,31 @@ const addExercicioToAtividade = async (req, res) => {
 };
 
 const filterGrupoAtividadesByNivel = async (req, res) => {
-    const nivel = req.query.nivel; // lê o valor do nível do corpo da requisição
-    //console.log('Nível:', nivel); 
-
-  try {
-    const atividades = await GrupoAtividades.find({ nivelDaAtividade: { $lte: nivel } });
-    if (!atividades.length) {
-      return res.status(404).json({ msg: 'Nenhuma atividade encontrada com o nível fornecido' });
+    const nivel = req.query.nivel;
+    const grupos = req.query.grupo.split(','); // converte a string em uma lista de grupos
+  
+    //console.log('Nível:', nivel);
+    //console.log('Grupos:', grupos);
+  
+    try {
+      const atividades = await GrupoAtividades.find({
+        nivelDaAtividade: { $lte: nivel },
+        dominio: { $in: grupos }
+      });
+  
+      //console.log('Atividades encontradas:', atividades.length);
+  
+      if (!atividades.length) {
+        console.log('Nenhuma atividade encontrada com o nível fornecido');
+        return res.status(404).json({ msg: 'Nenhuma atividade encontrada com o nível fornecido' });
+      }
+      //console.log('Atividades retornadas:', atividades);
+      res.status(200).json({ atividades });
+    } catch (error) {
+      console.error('Erro ao buscar atividades:', error);
+      res.status(500).json({ msg: 'Erro ao buscar atividades' });
     }
-    res.status(200).json({ atividades });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ msg: 'Erro ao buscar atividades' });
-  }
-};
+  };
 
 module.exports = {
     getGrupoAtividades,
