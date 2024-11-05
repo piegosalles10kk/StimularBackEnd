@@ -103,7 +103,7 @@ const UserSchema = new mongoose.Schema({
     dataDeNascimento: { type: String, required: true },
     senha: { type: String, required: true },
     recuperarSenha: { type: String, required: false },
-    foto: { type: String, required: false },
+    foto: { type: String, required: true },
     profissional: [ProfissionalSchema],
     diagnostico: [DiagnosticoSchema],
     grupo: [{ type: String, required: false }],
