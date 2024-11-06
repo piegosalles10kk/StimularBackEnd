@@ -6,6 +6,6 @@ const checkToken = require('../middleware/checkToken');
 router.post('/grupoatividades/:grupoAtividadeId/atividadesfinalizadas', checkToken, createAtividadeFinalizada);
 router.get('/atividadesfinalizadas/:id', checkToken, getAtividadeFinalizada);
 router.patch('/atividadesfinalizadas/:id', checkToken, updateAtividadeFinalizada);
-router.delete('/atividadesfinalizadas/:id', checkToken, deleteAtividadeFinalizada);
+router.delete('/atividadesfinalizadas/:grupoAtividadesId', checkToken, deleteAtividadeFinalizada);
 
 module.exports = router;

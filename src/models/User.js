@@ -36,25 +36,34 @@ const GrupoAtividadesSchema = new mongoose.Schema({
     pontuacaoTotalDoGrupo: { type: Number, required: true }
 });
 
+const respostasSalvasSchema = new mongoose.Schema({
+    exercicioId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    isCorreta: { type: Boolean, required: true },
+    pontuacao: { type: Number, required: true }
+})
+
 const GruposDeAtividadesEmAndamentoSchema = new mongoose.Schema({
     grupoAtividadesId: { type: mongoose.Schema.Types.ObjectId, ref: 'GrupoAtividades', required: true },
     dataInicio: { type: Date, required: true },
-    respostas: [
-        {
-            exercicioId: { type: mongoose.Schema.Types.ObjectId, required: true },
-            isCorreta: { type: Boolean, required: true }
-        }
-    ]
+    pontuacaoPossivel: { type: Number, required: true },
+    respostas: [respostasSalvasSchema]
 });
 
 // Esquema para Grupos de Atividades Finalizadas
 const GruposDeAtividadesFinalizadasSchema = new mongoose.Schema({
     grupoAtividadesId: { type: mongoose.Schema.Types.ObjectId, ref: 'GrupoAtividades', required: true },
     dataInicio: { type: Date, required: true },
-    dataFinalizada: { type: Date, required: true },
-    respostasFinais: { type: Number, required: true },
+    dataFinalizada: { type: Date, required: true },   
+    respostasFinais: [ // Mantenha esta estrutura de array de objetos
+        {
+            exercicioId: { type: mongoose.Schema.Types.ObjectId, required: true },
+            isCorreta: { type: Boolean, required: true },
+            pontuacao: { type: Number, required: true },
+        }
+    ],
     pontuacaoPossivel: { type: Number, required: true },
-    pontuacaoFinal: { type: Number, required: true }
+    pontuacaoFinal: { type: Number, required: true },
+    porcentagem: { type: Number, required: true }
 });
 
 // Esquema para Diagnóstico
@@ -84,10 +93,10 @@ const PacientesSchema = new mongoose.Schema({
 
 // Esquema para Conquistas
 const ConquistasSchema = new mongoose.Schema({
-    idDaConquista: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    nome: { type: String, required: true },
-    imagem: { type: String, required: true },
-    descricao: { type: String, required: true },
+    idDaConquista: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
+    nome: { type: String, required: false },
+    imagem: { type: String, required: false },
+    descricao: { type: String, required: false },
 });
 
 // Esquema para Usuários
@@ -107,17 +116,22 @@ const UserSchema = new mongoose.Schema({
     profissional: [ProfissionalSchema],
     diagnostico: [DiagnosticoSchema],
     grupo: [{ type: String, required: false }],
-    gruposDeAtividadesEmAndamento: [GruposDeAtividadesEmAndamentoSchema],
+    gruposDeAtividadesEmAndamento: [{
+        grupoId: { type: mongoose.Schema.Types.ObjectId, required: true }, // ID do grupo de atividades
+        dataInicio: { type: Date, required: true },
+        pontuacaoPossivel: { type: Number, required: true },
+        respostas: [
+            {
+                exercicioId: { type: mongoose.Schema.Types.ObjectId, required: true },
+                isCorreta: { type: Boolean, required: true },
+                pontuacao: { type: Number, required: true }
+            }
+        ]
+    }],
     gruposDeAtividadesFinalizadas: [GruposDeAtividadesFinalizadasSchema],
     descricao: [DescricaoSchema],
     pacientes: [PacientesSchema],
     gruposDeAtividadesCriadas: [{type: mongoose.Schema.Types.ObjectId, ref: 'GrupoAtividades', required: false}],
-    pontuacoesPorGrupo: [
-        {
-            grupoId: { type: mongoose.Schema.Types.ObjectId, ref: 'GrupoAtividades', required: false },
-            pontuacao: { type: Number, required: false }
-        }
-    ],
     recupararSenha: { type: Boolean, required: false },
     codigoRecuperarSenha: { type: String, required: false }
 });
