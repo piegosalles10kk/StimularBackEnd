@@ -40,14 +40,22 @@ const createUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
     const id = req.params.id;
+
     try {
-        await User.findByIdAndUpdate(id, req.body);
-        res.status(200).json({ msg: 'Usuário atualizado com sucesso' });
+        console.log('Dados recebidos para atualização:', req.body); // Loga os dados recebidos
+        const updatedUser = await User.findByIdAndUpdate(id, req.body, { new: true });
+
+        if (!updatedUser) {
+            return res.status(404).json({ msg: 'Usuário não encontrado' });
+        }
+
+        res.status(200).json({ msg: 'Usuário atualizado com sucesso', user: updatedUser });
     } catch (err) {
         console.log(err);
         res.status(500).json({ msg: 'Erro ao atualizar usuário' });
     }
 };
+
 
 const deleteUser = async (req, res) => {
     const id = req.params.id;
