@@ -150,29 +150,60 @@ const addExercicioToAtividade = async (req, res) => {
 const filterGrupoAtividadesByNivel = async (req, res) => {
     const nivel = req.query.nivel;
     const grupos = req.query.grupo.split(','); // converte a string em uma lista de grupos
-  
+    const tipoDeAtividades = req.query.tipoDeAtividades; // parâmetro opcional para tipo de atividades
+
     //console.log('Nível:', nivel);
     //console.log('Grupos:', grupos);
-  
+    //console.log('Tipo de Atividades:', tipoDeAtividades);
+
     try {
-      const atividades = await GrupoAtividades.find({
-        nivelDaAtividade: { $lte: nivel },
-        dominio: { $in: grupos }
-      });
-  
-      //console.log('Atividades encontradas:', atividades.length);
-  
-      if (!atividades.length) {
-        console.log('Nenhuma atividade encontrada com o nível fornecido');
-        return res.status(404).json({ msg: 'Nenhuma atividade encontrada com o nível fornecido' });
-      }
-      //console.log('Atividades retornadas:', atividades);
-      res.status(200).json({ atividades });
+        // Cria o filtro inicial
+        const filter = {
+            nivelDaAtividade: { $lte: nivel },
+            dominio: { $in: grupos },
+        };
+        
+        // Se um tipo de atividade for fornecido, adiciona ao filtro
+        if (tipoDeAtividades) {
+            filter.tipoDeAtividades = tipoDeAtividades;
+        }
+
+        // Busca as atividades com o filtro aplicado
+        const atividades = await GrupoAtividades.find(filter);
+
+        // Ordena as atividades por nível (do maior para o menor)
+        atividades.sort((a, b) => b.nivelDaAtividade - a.nivelDaAtividade);
+
+        //console.log('Atividades encontradas:', atividades.length);
+
+        if (!atividades.length) {
+            console.log('Nenhuma atividade encontrada com o nivel fornecido');
+            return res.status(404).json({ msg: 'Nenhuma atividade encontrada com o nível fornecido' });
+        }
+
+        // Se não há atividades filtradas por tipoDeAtividades, retorna a de maior nível
+        if (tipoDeAtividades && atividades.length === 0) {
+            // Busca novamente para pegar a atividade com o nível mais alto sem o filtro de tipoDeAtividades
+            const highestLevelActivity = await GrupoAtividades.find({
+                nivelDaAtividade: { $lte: nivel },
+                dominio: { $in: grupos }
+            }).sort({ nivelDaAtividade: -1 }).limit(1);
+
+            if (highestLevelActivity.length === 0) {
+                return res.status(404).json({ msg: 'Nenhuma atividade encontrada com o nível fornecido' });
+            }
+
+            return res.status(200).json({ atividades: highestLevelActivity });
+        }
+
+        //console.log('Atividades retornadas:', atividades);
+        res.status(200).json({ atividades });
     } catch (error) {
-      console.error('Erro ao buscar atividades:', error);
-      res.status(500).json({ msg: 'Erro ao buscar atividades' });
+        console.error('Erro ao buscar atividades:', error);
+        res.status(500).json({ msg: 'Erro ao buscar atividades' });
     }
-  };
+};
+
 
 module.exports = {
     getGrupoAtividades,
