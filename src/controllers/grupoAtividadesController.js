@@ -148,28 +148,52 @@ const addExercicioToAtividade = async (req, res) => {
 };
 
 const filterGrupoAtividadesByNivel = async (req, res) => {
-    const nivel = req.query.nivel;
-    const grupos = req.query.grupo.split(','); // converte a string em uma lista de grupos
-    const tipoDeAtividades = req.query.tipoDeAtividades; // parâmetro opcional para tipo de atividades
+    const nivel = parseInt(req.query.nivel, 10);
+    const grupos = req.query.grupo.split(',');
+    const tipoDeAtividades = req.query.tipoDeAtividades;
 
-    let tiposAtividades = [];
-    if (tipoDeAtividades) {
-        tiposAtividades = tipoDeAtividades.split(','); // Converte a string em um array
-    }
+    const usuarioId = req.user._id; // Obtém o ID do usuário a partir do token
+
+    console.log(grupos, nivel, tipoDeAtividades, usuarioId);
 
     try {
+        // Obtendo grupos de atividades finalizadas do usuário
+        const usuario = await User.findById(usuarioId);
+        if (!usuario) {
+            return res.status(404).json({ msg: 'Usuário não encontrado.' });
+        }
+
+        const gruposDeAtividadesFinalizadas = usuario.gruposDeAtividadesFinalizadas.map(item => item.grupoAtividadesId);
+
+        let tiposAtividades = [];
+        if (tipoDeAtividades) {
+            tiposAtividades = tipoDeAtividades.split(',');
+        }
+
+        // Diagnóstico: busca atividades no banco sem filtro de tipo
+        const atividadesTipoSemFiltro = await GrupoAtividades.find({
+            nivelDaAtividade: { $lte: nivel },
+            dominio: { $in: grupos }
+        });
+
+        console.log('Atividades no banco sem filtro de tipo:', atividadesTipoSemFiltro);
+
+        // Criação do filtro completo
         const filter = {
             nivelDaAtividade: { $lte: nivel },
             dominio: { $in: grupos },
+            _id: { $nin: gruposDeAtividadesFinalizadas },
         };
 
-        // Adiciona o filtro de tipoDeAtividades, se houver
+        // Adiciona filtro de tipoDeAtividade usando $elemMatch se houver
         if (tiposAtividades.length > 0) {
-            filter.tipoDeAtividades = { $in: tiposAtividades }; // Usando $in para buscar múltiplos tipos
+            filter.atividades = { $elemMatch: { tipoDeAtividade: { $in: tiposAtividades } } };
         }
 
-        const atividades = await GrupoAtividades.find(filter);
-        atividades.sort((a, b) => b.nivelDaAtividade - a.nivelDaAtividade);
+        console.log('Filtro aplicado:', filter);
+
+        // Busca as atividades
+        const atividades = await GrupoAtividades.find(filter).sort({ nivelDaAtividade: -1 });
 
         if (!atividades.length) {
             return res.status(404).json({ msg: 'Nenhuma atividade encontrada com o nível fornecido' });
@@ -181,6 +205,7 @@ const filterGrupoAtividadesByNivel = async (req, res) => {
         res.status(500).json({ msg: 'Erro ao buscar atividades' });
     }
 };
+
 
 
 
