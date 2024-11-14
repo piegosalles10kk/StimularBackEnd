@@ -62,6 +62,8 @@ const updateExercicio = async (req, res) => {
     const { grupoAtividadeId, atividadeId, exercicioId } = req.params;
     const atualizacao = req.body;
 
+    console.log({ msg: 'Dados recebidos para atualização:', atualizacao });
+
     try {
         const grupoAtividades = await GrupoAtividades.findById(grupoAtividadeId);
         if (!grupoAtividades) {
@@ -78,9 +80,16 @@ const updateExercicio = async (req, res) => {
             return res.status(404).json({ message: 'Exercício não encontrado!' });
         }
 
+        // Atualiza apenas os campos fornecidos, incluindo midia
         for (const key in atualizacao) {
             if (atualizacao.hasOwnProperty(key)) {
-                exercicio[key] = atualizacao[key];
+                if (key === 'midia') {
+                    // Aqui, garantimos que 'midia' contém os campos necessários
+                    exercicio.midia.tipoDeMidia = atualizacao.midia.tipoDeMidia || exercicio.midia.tipoDeMidia;
+                    exercicio.midia.url = atualizacao.midia.url || exercicio.midia.url;
+                } else {
+                    exercicio[key] = atualizacao[key]; // Todos os outros campos
+                }
             }
         }
 
@@ -91,6 +100,7 @@ const updateExercicio = async (req, res) => {
         res.status(500).json({ msg: 'Erro ao atualizar exercício' });
     }
 };
+
 
 // Delete Exercício
 const deleteExercicio = async (req, res) => {
