@@ -1,47 +1,50 @@
 const mongoose = require('mongoose');
 const { User, GrupoAtividades } = require('../models/User');
 
-// Create AtividadeEmAndamento
 const createAtividadeEmAndamento = async (req, res) => {
-    const { respostas } = req.body; // Obtemos as respostas do corpo da requisição
+    const { respostas } = req.body; // Obtém as respostas do corpo da requisição
     const usuarioId = req.user._id; // ID do usuário autenticado
     const { grupoAtividadeId } = req.params; // ID do grupo de atividades
 
     try {
-        // Localiza a atividade pelo grupoAtividadeId para pegar a pontuacaoTotalDoGrupo
-        const grupoAtividade = await GrupoAtividades.findById(grupoAtividadeId);
+        const grupoAtividade = await GrupoAtividades.findById(grupoAtividadeId).populate('atividades.exercicios');
+        
+        if (!grupoAtividade) return res.status(404).json({ message: 'Grupo de atividades não encontrado.' });
 
-        if (!grupoAtividade) {
-            return res.status(404).json({ message: 'Grupo de atividades não encontrado.' });
-        }
-
-        // Agora pegamos o valor de pontuacaoTotalDoGrupo
         const pontuacaoPossivel = grupoAtividade.pontuacaoTotalDoGrupo;
+
+        // Mapeia as respostas e valida
+        const respostasValidas = respostas.map(resposta => {
+            const atividade = grupoAtividade.atividades.find(activity => activity._id.toString() === resposta.atividade_id.toString());
+            if (!atividade) throw new Error(`Atividade não encontrada para atividade_id: ${resposta.atividade_id}`);
+
+            const exercicio = atividade.exercicios.find(exercise => exercise.exercicioId.toString() === resposta.exercicioId.toString());
+            if (!exercicio) throw new Error(`Exercicio não encontrado para exercicioId: ${resposta.exercicioId} dentro da atividade_ID: ${resposta.atividade_id}`);
+
+            // Retorna o objeto de resposta válido
+            return {
+                exercicioId: exercicio._id, // ID do exercício
+                atividade_id: new mongoose.Types.ObjectId(resposta.atividade_id), // ID da atividade
+                isCorreta: resposta.isCorreta,
+                pontuacao: resposta.pontuacao
+            };
+        });
 
         // Estrutura da nova atividade em andamento
         const novaAtividadeEmAndamento = {
-            grupoId: new mongoose.Types.ObjectId(grupoAtividadeId),
-            dataInicio: new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }),
-            pontuacaoPossivel,
-            respostas: respostas.map(resposta => ({
-                exercicioId: new mongoose.Types.ObjectId(resposta.exercicioId),
-                isCorreta: resposta.isCorreta,
-                // Inclua pontuação se necessária com base em sua lógica
-                pontuacao: resposta.pontuacao // Presumindo que isso vem do frontend como parte de cada resposta.
-            }))
+            grupoAtividadesId: new mongoose.Types.ObjectId(grupoAtividadeId), // ID do grupo de atividades
+            dataInicio: new Date(), // Captura a data e hora
+            pontuacaoPossivel, // Pontuação total do grupo
+            respostas: respostasValidas // Respostas válidas
         };
 
-        // Primeiro, remover atividades anteriores com o mesmo grupo de atividades
-        await User.updateOne(
-            { _id: usuarioId },
-            { $pull: { gruposDeAtividadesEmAndamento: { grupoId: grupoAtividadeId } } } // Remove todas as atividades em andamento deste grupo
-        );
+        console.log("Nova Atividade em Andamento:", novaAtividadeEmAndamento);
 
-        // Atualizar o usuário para incluir a nova atividade
+        // Atualiza o usuário para incluir a nova atividade
         await User.findByIdAndUpdate(
             usuarioId,
             { $push: { gruposDeAtividadesEmAndamento: novaAtividadeEmAndamento } },
-            { new: true } // Retorna o documento atualizado
+            { new: true }
         );
 
         return res.status(201).json({ message: 'Atividade em andamento criada com sucesso!' });
