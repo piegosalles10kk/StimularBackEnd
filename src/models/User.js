@@ -76,6 +76,28 @@ const GruposDeAtividadesFinalizadasSchema = new mongoose.Schema({
     porcentagem: { type: Number, required: true }
 });
 
+// Esquema para Diagnóstico
+const DiagnosticoSchema = new mongoose.Schema({
+    titulo: { type: String, required: false },
+    conteudo: { type: String, required: false }
+});
+// Esquema para Descrição
+const DescricaoSchema = new mongoose.Schema({
+    autor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    nomeAutor: { type: String, required: true }, // Adicionado o nome do autor
+    comentario: { type: String, required: true }
+});
+// Esquema para Profissional
+const ProfissionalSchema = new mongoose.Schema({
+    idDoProfissional: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    nome: { type: String, required: true } // Adicionado o nome do profissional
+});
+// Esquema para Pacientes
+const PacientesSchema = new mongoose.Schema({
+    idDoPaciente: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    nome: { type: String, required: true } // Adicionado o nome do paciente
+});
+// Esquema para Conquistas
 const ConquistasSchema = new mongoose.Schema({
     idDaConquista: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
     nome: { type: String, required: false },
@@ -86,7 +108,7 @@ const ConquistasSchema = new mongoose.Schema({
 // Esquema para Usuários
 const UserSchema = new mongoose.Schema({
     tipoDeConta: { type: String, required: true },
-    conquistas: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Conquistas' }],
+    conquistas: [ConquistasSchema],
     validade: { type: String, required: false },
     moeda: { type: Number, required: false },
     nivel: { type: Number, required: false },
@@ -118,6 +140,8 @@ const Atividades = mongoose.model('Atividades', AtividadesSchema);
 const Exercicios = mongoose.model('Exercicios', ExerciciosSchema);
 const Alternativas = mongoose.model('Alternativas', AlternativasSchema);
 const Conquistas = mongoose.model('Conquistas', ConquistasSchema);
+const Profissional = mongoose.model('Profissional', ProfissionalSchema);
+const Pacientes = mongoose.model('Pacientes', PacientesSchema);
 
 // Exportação dos Modelos
 module.exports = {
@@ -128,5 +152,7 @@ module.exports = {
     Atividades,
     Exercicios,
     Conquistas,
+    Profissional,
+    Pacientes,
     Alternativas
 };
