@@ -119,7 +119,7 @@ const UserSchema = new mongoose.Schema({
     senha: { type: String, required: true },
     recuperarSenha: { type: String, required: false },
     foto: { type: String, required: true },
-    profissional: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Profissional' }],
+    profissional: [ProfissionalSchema],
     diagnostico: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Diagnostico' }],
     grupo: [{ type: String, required: false }],
     gruposDeAtividadesEmAndamento: [GruposDeAtividadesEmAndamentoSchema],
