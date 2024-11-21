@@ -89,7 +89,7 @@ const DescricaoSchema = new mongoose.Schema({
 });
 // Esquema para Profissional
 const ProfissionalSchema = new mongoose.Schema({
-    idDoProfissional: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    idDoProfissional: { type: String, required: true },
     nome: { type: String, required: true } // Adicionado o nome do profissional
 });
 // Esquema para Pacientes

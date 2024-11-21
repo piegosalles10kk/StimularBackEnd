@@ -31,10 +31,7 @@ const createUser = async (req, res) => {
     
         const salt = await bcrypt.genSalt(12);
         const passwordHash = await bcrypt.hash(senha, salt);
-    
-        // Transformar o profissional para um ObjectId
-        const profissionalIds = profissional.map(prof => new mongoose.Types.ObjectId(prof.idDoProfissional));
-    
+        
         const user = new User({ 
             email, 
             nome, 
@@ -42,7 +39,7 @@ const createUser = async (req, res) => {
             dataDeNascimento, 
             senha: passwordHash, 
             tipoDeConta, 
-            profissional: profissionalIds, // Mudança aqui: use apenas IDs
+            profissional,
             moeda, 
             validade, 
             nivel, 
