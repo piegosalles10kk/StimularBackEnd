@@ -76,6 +76,13 @@ const GruposDeAtividadesFinalizadasSchema = new mongoose.Schema({
     porcentagem: { type: Number, required: true }
 });
 
+const ConquistasSchema = new mongoose.Schema({
+    idDaConquista: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
+    nome: { type: String, required: false },
+    imagem: { type: String, required: false },
+    descricao: { type: String, required: false },
+});
+
 // Esquema para Usuários
 const UserSchema = new mongoose.Schema({
     tipoDeConta: { type: String, required: true },
@@ -110,6 +117,7 @@ const GruposDeAtividadesFinalizadas = mongoose.model('GruposDeAtividadesFinaliza
 const Atividades = mongoose.model('Atividades', AtividadesSchema);
 const Exercicios = mongoose.model('Exercicios', ExerciciosSchema);
 const Alternativas = mongoose.model('Alternativas', AlternativasSchema);
+const Conquistas = mongoose.model('Conquistas', ConquistasSchema);
 
 // Exportação dos Modelos
 module.exports = {
@@ -119,5 +127,6 @@ module.exports = {
     GruposDeAtividadesFinalizadas,
     Atividades,
     Exercicios,
+    Conquistas,
     Alternativas
 };
