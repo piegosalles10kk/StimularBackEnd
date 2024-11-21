@@ -19,16 +19,47 @@ const getUser = async (req, res) => {
 
 const createUser = async (req, res) => {
     const { email, nome, foto, telefone, dataDeNascimento, senha, confirmarSenha, tipoDeConta, profissional, moeda, validade, nivel, grupo, conquistas } = req.body;
+
     if (!email || !nome || !telefone || !dataDeNascimento || !senha || senha !== confirmarSenha || !tipoDeConta) {
         return res.status(422).json({ message: 'Campos obrigatórios faltando ou senhas não conferem!' });
     }
+
     const userExists = await User.findOne({ email });
     if (userExists) {
         return res.status(422).json({ message: 'Email já cadastrado!' });
     }
+
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(senha, salt);
-    const user = new User({ email, nome, telefone, dataDeNascimento, senha: passwordHash, tipoDeConta, profissional, moeda, validade, nivel, foto, grupo, conquistas });
+
+    // Transformando conquistas em ObjectId se necessário
+    const conquistasIds = await Promise.all(conquistas.map(async (conquista) => {
+        const novaConquista = new Conquistas(conquista);
+        const savedConquista = await novaConquista.save();
+        return savedConquista._id; // Retorna o ID da nova conquista
+    }));
+
+    // Transformando profissionais em ObjectId se necessário
+    const profissionalIds = profissional.map(prof => {
+        return mongoose.Types.ObjectId(prof.idDoProfissional);  // Apenas o ID
+    });
+
+    const user = new User({
+        email,
+        nome,
+        telefone,
+        dataDeNascimento,
+        senha: passwordHash,
+        tipoDeConta,
+        foto,
+        grupo,
+        moeda,
+        validade,
+        nivel,
+        profissional: profissionalIds,  // Passando somente IDs
+        conquistas: conquistasIds  // Passando IDs das conquistas
+    });
+
     try {
         await user.save();
         res.status(201).json({ msg: 'Usuário criado com sucesso' });
@@ -37,6 +68,7 @@ const createUser = async (req, res) => {
         res.status(500).json({ msg: 'Erro ao criar usuário' });
     }
 };
+
 
 const updateUser = async (req, res) => {
     const id = req.params.id;
