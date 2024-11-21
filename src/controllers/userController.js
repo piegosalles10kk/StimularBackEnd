@@ -1,4 +1,4 @@
-const { User } = require('../models/User');
+const { User, Conquistas } = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
@@ -32,16 +32,16 @@ const createUser = async (req, res) => {
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(senha, salt);
 
-    // Transformando conquistas em ObjectId se necessário
+    // Salvando conquistas
     const conquistasIds = await Promise.all(conquistas.map(async (conquista) => {
         const novaConquista = new Conquistas(conquista);
         const savedConquista = await novaConquista.save();
         return savedConquista._id; // Retorna o ID da nova conquista
     }));
 
-    // Transformando profissionais em ObjectId se necessário
+    // Transformando profissionais em ObjectId
     const profissionalIds = profissional.map(prof => {
-        return mongoose.Types.ObjectId(prof.idDoProfissional);  // Apenas o ID
+        return mongoose.Types.ObjectId(prof.idDoProfissional); // Apenas o ID do profissional
     });
 
     const user = new User({
@@ -56,8 +56,8 @@ const createUser = async (req, res) => {
         moeda,
         validade,
         nivel,
-        profissional: profissionalIds,  // Passando somente IDs
-        conquistas: conquistasIds  // Passando IDs das conquistas
+        profissional: profissionalIds, // Passando somente IDs
+        conquistas: conquistasIds // Passando IDs das conquistas
     });
 
     try {
