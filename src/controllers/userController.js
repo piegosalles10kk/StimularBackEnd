@@ -1,10 +1,10 @@
-const { User, Conquistas } = require('../models/User');
+const mongoose = require('mongoose'); // Importação do mongoose
+const { User, Conquistas } = require('../models/User'); // Certifique-se de que o caminho está correto
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-
 const getAllUser = async (req, res) => {
-    const users = await User.find({},'-senha');
+    const users = await User.find({}, '-senha');
     res.status(200).json({ users });
 };
 
@@ -68,7 +68,6 @@ const createUser = async (req, res) => {
         res.status(500).json({ msg: 'Erro ao criar usuário' });
     }
 };
-
 
 const updateUser = async (req, res) => {
     const id = req.params.id;
