@@ -1,10 +1,10 @@
-const mongoose = require('mongoose'); // Importação do mongoose
-const { User, Conquistas } = require('../models/User'); // Certifique-se de que o caminho está correto
+const { User } = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+
 const getAllUser = async (req, res) => {
-    const users = await User.find({}, '-senha');
+    const users = await User.find({},'-senha');
     res.status(200).json({ users });
 };
 
@@ -19,47 +19,16 @@ const getUser = async (req, res) => {
 
 const createUser = async (req, res) => {
     const { email, nome, foto, telefone, dataDeNascimento, senha, confirmarSenha, tipoDeConta, profissional, moeda, validade, nivel, grupo, conquistas } = req.body;
-
     if (!email || !nome || !telefone || !dataDeNascimento || !senha || senha !== confirmarSenha || !tipoDeConta) {
         return res.status(422).json({ message: 'Campos obrigatórios faltando ou senhas não conferem!' });
     }
-
     const userExists = await User.findOne({ email });
     if (userExists) {
         return res.status(422).json({ message: 'Email já cadastrado!' });
     }
-
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(senha, salt);
-
-    // Salvando conquistas
-    const conquistasIds = await Promise.all(conquistas.map(async (conquista) => {
-        const novaConquista = new Conquistas(conquista);
-        const savedConquista = await novaConquista.save();
-        return savedConquista._id; // Retorna o ID da nova conquista
-    }));
-
-    // Transformando profissionais em ObjectId
-    const profissionalIds = profissional.map(prof => {
-        return mongoose.Types.ObjectId(prof.idDoProfissional); // Apenas o ID do profissional
-    });
-
-    const user = new User({
-        email,
-        nome,
-        telefone,
-        dataDeNascimento,
-        senha: passwordHash,
-        tipoDeConta,
-        foto,
-        grupo,
-        moeda,
-        validade,
-        nivel,
-        profissional: profissionalIds, // Passando somente IDs
-        conquistas: conquistasIds // Passando IDs das conquistas
-    });
-
+    const user = new User({ email, nome, telefone, dataDeNascimento, senha: passwordHash, tipoDeConta, profissional, moeda, validade, nivel, foto, grupo, conquistas  });
     try {
         await user.save();
         res.status(201).json({ msg: 'Usuário criado com sucesso' });
