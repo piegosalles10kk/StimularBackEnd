@@ -18,26 +18,48 @@ const getUser = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-    const { email, nome, foto, telefone, dataDeNascimento, senha, confirmarSenha, tipoDeConta, profissional, moeda, validade, nivel, grupo, conquistas } = req.body;
-    if (!email || !nome || !telefone || !dataDeNascimento || !senha || senha !== confirmarSenha || !tipoDeConta) {
-        return res.status(422).json({ message: 'Campos obrigatórios faltando ou senhas não conferem!' });
-    }
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-        return res.status(422).json({ message: 'Email já cadastrado!' });
-    }
-    const salt = await bcrypt.genSalt(12);
-    const passwordHash = await bcrypt.hash(senha, salt);
-    const user = new User({ email, nome, telefone, dataDeNascimento, senha: passwordHash, tipoDeConta, profissional, moeda, validade, nivel, foto, grupo, conquistas  });
-    try {
-        await user.save();
-        res.status(201).json({ msg: 'Usuário criado com sucesso' });
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ msg: 'Erro ao criar usuário' });
-    }
-};
-
+        const { email, nome, foto, telefone, dataDeNascimento, senha, confirmarSenha, tipoDeConta, profissional, moeda, validade, nivel, grupo, conquistas } = req.body;
+        
+        if (!email || !nome || !telefone || !dataDeNascimento || !senha || senha !== confirmarSenha || !tipoDeConta) {
+            return res.status(422).json({ message: 'Campos obrigatórios faltando ou senhas não conferem!' });
+        }
+    
+        const userExists = await User.findOne({ email });
+        if (userExists) {
+            return res.status(422).json({ message: 'Email já cadastrado!' });
+        }
+    
+        const salt = await bcrypt.genSalt(12);
+        const passwordHash = await bcrypt.hash(senha, salt);
+    
+        // Transformar o profissional para um ObjectId
+        const profissionalIds = profissional.map(prof => new mongoose.Types.ObjectId(prof.idDoProfissional));
+    
+        const user = new User({ 
+            email, 
+            nome, 
+            telefone, 
+            dataDeNascimento, 
+            senha: passwordHash, 
+            tipoDeConta, 
+            profissional: profissionalIds, // Mudança aqui: use apenas IDs
+            moeda, 
+            validade, 
+            nivel, 
+            foto, 
+            grupo, 
+            conquistas 
+        });
+    
+        try {
+            await user.save();
+            res.status(201).json({ msg: 'Usuário criado com sucesso' });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ msg: 'Erro ao criar usuário' });
+        }
+    };
+    
 const updateUser = async (req, res) => {
     const id = req.params.id;
 
