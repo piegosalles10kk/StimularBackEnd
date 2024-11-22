@@ -4,7 +4,7 @@ const { createAtividade, getAtividade, updateAtividade, deleteAtividade } = requ
 const checkToken = require('../middleware/checkToken');
 
 router.post('/grupoatividades/:grupoAtividadeId/atividades', checkToken, createAtividade);
-router.get('/atividades/:id', checkToken, getAtividade);
+router.get('/atividades/:idGrupoAtividades/:idAtividade', checkToken, getAtividade);
 router.patch('/atividades/:id', checkToken, updateAtividade);
 router.delete('/atividades/:id', checkToken, deleteAtividade);
 

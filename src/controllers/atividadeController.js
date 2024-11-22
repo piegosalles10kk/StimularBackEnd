@@ -27,17 +27,30 @@ const createAtividade = async (req, res) => {
 
 // Get Atividade
 const getAtividade = async (req, res) => {
-    const { id } = req.params;
+    const { idGrupoAtividades, idAtividade } = req.params; // Extraindo os IDs
 
     try {
-        const atividade = await Atividades.findById(id);
-        if (!atividade) {
-            return res.status(404).json({ message: 'Atividade não encontrada!' });
+        // Buscando o grupo de atividades e populando atividades
+        const grupoAtividades = await GrupoAtividades.findById(idGrupoAtividades).populate({
+            path: 'atividades',
+            populate: { path: 'exercicios' } // Populando os exercícios dentro das atividades
+        });
+
+        if (!grupoAtividades) {
+            return res.status(404).json({ message: 'Grupo de Atividades não encontrado!' });
         }
 
+        // Filtrando a atividade pelo ID dentro do grupo encontrado
+        const atividade = grupoAtividades.atividades.find(a => a._id.toString() === idAtividade); // Verifica se a atividade está no grupo
+
+        if (!atividade) {
+            return res.status(404).json({ message: 'Atividade não encontrada no grupo especificado!' });
+        }
+
+        console.log('Atividade encontrada:', JSON.stringify(atividade, null, 2)); // Log detalhado
         res.status(200).json({ atividade });
     } catch (error) {
-        console.log('Erro ao obter atividade:', error);
+        console.error('Erro ao obter atividade:', error);
         res.status(500).json({ msg: 'Erro ao obter atividade' });
     }
 };
