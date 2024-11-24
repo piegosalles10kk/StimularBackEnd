@@ -106,7 +106,7 @@ const updateAtividadeEmAndamento = async (req, res) => {
 
     try {
         const usuario = await User.findById(req.user._id);
-
+        
         if (!usuario) {
             return res.status(404).json({ message: 'Usuário não encontrado!' });
         }
@@ -130,16 +130,18 @@ const updateAtividadeEmAndamento = async (req, res) => {
                 if (!exercicio) throw new Error(`Exercicio não encontrado para exercicioId: ${resposta.exercicioId} dentro da atividade_ID: ${resposta.atividade_id}`);
 
                 // Verifica se já existe uma resposta para este exercício
-                const respostaExistenteIndex = atividadeEmAndamento.respostas.findIndex(resp => resp.exercicioId.toString() === exercicio._id.toString());
+                const respostaExistenteIndex = atividadeEmAndamento.respostas.findIndex(
+                    resp => resp.exercicioId.toString() === exercicio._id.toString()
+                );
                 
                 if (respostaExistenteIndex > -1) {
                     // Se existir, atualiza a resposta existente
-                    atividadeEmAndamento.respostas[respostaExistenteIndex] = {
-                        exercicioId: exercicio._id, 
-                        atividade_id: new mongoose.Types.ObjectId(resposta.atividade_id),
-                        isCorreta: resposta.isCorreta,
-                        pontuacao: resposta.pontuacao
-                    };
+                    const respostaExistente = atividadeEmAndamento.respostas[respostaExistenteIndex];
+
+                    // Atualiza apenas os campos que você deseja alterar
+                    respostaExistente.isCorreta = resposta.isCorreta; 
+                    respostaExistente.pontuacao = resposta.pontuacao;
+
                     console.log(`Resposta atualizada para exercício_id: ${exercicio._id}, atividade_id: ${resposta.atividade_id}`);
                 } else {
                     // Se não existir, adiciona a nova resposta
@@ -173,6 +175,62 @@ const updateAtividadeEmAndamento = async (req, res) => {
 };
 
 
+// Função para atualizar a resposta de um exercício
+const updateRespostaAtividadeEmAndamento = async (req, res) => {
+    const { grupoId } = req.params; // ID do grupo de atividades em andamento
+    const { atividade_id, exercicioId, alternativaId, isCorreta, pontuacao } = req.body; // Extrai os dados do corpo da requisição
+
+    try {
+        const usuario = await User.findById(req.user._id); // Obtém o ID do usuário autenticado
+        if (!usuario) {
+            return res.status(404).json({ message: 'Usuário não encontrado!' });
+        }
+
+        // Encontra o grupo de atividades em andamento pelo ID
+        const grupoAtividades = usuario.gruposDeAtividadesEmAndamento.find(grupo => 
+            grupo._id.toString() === grupoId
+        );
+
+        if (!grupoAtividades) {
+            return res.status(404).json({ message: 'Grupo de atividades em andamento não encontrado.' });
+        }
+
+        // Verifica se a atividade existe dentro do grupo
+        const atividadeEmAndamento = grupoAtividades.respostas.find(resp => 
+            resp.atividade_id.toString() === atividade_id && resp.exercicioId.toString() === exercicioId
+        );
+
+        if (atividadeEmAndamento) {
+            // Atualiza a resposta existente
+            atividadeEmAndamento.isCorreta = isCorreta;
+            atividadeEmAndamento.pontuacao = pontuacao;
+            atividadeEmAndamento.alternativaId = alternativaId; // Atualiza alternativaId
+            
+            console.log(`Resposta atualizada para exercício_id: ${exercicioId}, atividade_id: ${atividade_id}`);
+        } else {
+            // Se não existir, cria uma nova resposta
+            const novaResposta = {
+                exercicioId: exercicioId,
+                atividade_id: atividade_id,
+                isCorreta: isCorreta,
+                pontuacao: pontuacao,
+                alternativaId: alternativaId,
+            };
+
+            grupoAtividades.respostas.push(novaResposta); // Adiciona nova resposta
+            console.log(`Nova resposta adicionada para atividade_id: ${atividade_id}, exercício_id: ${exercicioId}`);
+        }
+
+        await usuario.save(); // Salva as alterações no usuário
+        res.status(200).json({ msg: 'Resposta atualizada com sucesso', grupoAtividades });
+
+    } catch (error) {
+        console.log('Erro ao atualizar resposta na atividade em andamento:', error);
+        res.status(500).json({ msg: 'Erro ao atualizar resposta' });
+    }
+};
+   
+
 // Delete AtividadeEmAndamento
 const deleteAtividadeEmAndamento = async (req, res) => {
     const { id } = req.params;
@@ -202,5 +260,6 @@ module.exports = {
     createAtividadeEmAndamento,
     getAtividadeEmAndamento,
     updateAtividadeEmAndamento,
+    updateRespostaAtividadeEmAndamento,
     deleteAtividadeEmAndamento
 };
