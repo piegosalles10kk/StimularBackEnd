@@ -106,34 +106,20 @@ const updateAtividadeEmAndamento = async (req, res) => {
 
     try {
         const usuario = await User.findById(req.user._id);
+
         if (!usuario) {
             return res.status(404).json({ message: 'Usuário não encontrado!' });
         }
 
         const atividadeEmAndamento = usuario.gruposDeAtividadesEmAndamento.id(id);
+        
         if (!atividadeEmAndamento) {
             return res.status(404).json({ message: 'Atividade em andamento não encontrada!' });
         }
 
-        // Verifica se há atividade_id igual nas novasRespostas e remove as atividades existentes, se necessário
+        // Verifica se há atividade_id igual nas novasRespostas
         if (novasRespostas && Array.isArray(novasRespostas)) {
             for (const resposta of novasRespostas) {
-                // Busca atividades existentes com o mesmo atividade_id
-                const atividadesExistentes = await User.findOne({
-                    _id: usuario._id,
-                    'gruposDeAtividadesEmAndamento.respostas.atividade_id': resposta.atividade_id
-                });
-
-                if (atividadesExistentes) {
-                    // Remove as atividades com o mesmo atividade_id
-                    await User.updateMany(
-                        { _id: usuario._id },
-                        { $pull: { gruposDeAtividadesEmAndamento: { 'respostas.atividade_id': resposta.atividade_id } } }
-                    );
-                    console.log(`Atividades com atividade_id: ${resposta.atividade_id} removidas com sucesso.`); // Log da atividade removida
-                }
-
-                // Obtém a atividade atual do grupo que corresponde ao atividade_id
                 const grupoAtividade = await GrupoAtividades.findById(atividadeEmAndamento.grupoAtividadesId).populate('atividades.exercicios');
 
                 const atividade = grupoAtividade.atividades.find(activity => activity._id.toString() === resposta.atividade_id.toString());
@@ -143,21 +129,33 @@ const updateAtividadeEmAndamento = async (req, res) => {
                 const exercicio = atividade.exercicios.find(exercise => exercise.exercicioId.toString() === resposta.exercicioId.toString());
                 if (!exercicio) throw new Error(`Exercicio não encontrado para exercicioId: ${resposta.exercicioId} dentro da atividade_ID: ${resposta.atividade_id}`);
 
-                // Formata a resposta
-                const respostaFormatada = {
-                    exercicioId: exercicio._id, // ID do exercício
-                    atividade_id: new mongoose.Types.ObjectId(resposta.atividade_id), // ID da atividade
-                    isCorreta: resposta.isCorreta,
-                    pontuacao: resposta.pontuacao
-                };
-
-                // Adiciona a nova resposta ao array de respostas da atividade em andamento
-                atividadeEmAndamento.respostas.push(respostaFormatada);
-                console.log(`Resposta adicionada para atividade_id: ${resposta.atividade_id}. Exercicio_ID: ${exercicio._id}`); // Log da nova resposta
+                // Verifica se já existe uma resposta para este exercício
+                const respostaExistenteIndex = atividadeEmAndamento.respostas.findIndex(resp => resp.exercicioId.toString() === exercicio._id.toString());
+                
+                if (respostaExistenteIndex > -1) {
+                    // Se existir, atualiza a resposta existente
+                    atividadeEmAndamento.respostas[respostaExistenteIndex] = {
+                        exercicioId: exercicio._id, 
+                        atividade_id: new mongoose.Types.ObjectId(resposta.atividade_id),
+                        isCorreta: resposta.isCorreta,
+                        pontuacao: resposta.pontuacao
+                    };
+                    console.log(`Resposta atualizada para exercício_id: ${exercicio._id}, atividade_id: ${resposta.atividade_id}`);
+                } else {
+                    // Se não existir, adiciona a nova resposta
+                    const respostaFormatada = {
+                        exercicioId: exercicio._id,
+                        atividade_id: new mongoose.Types.ObjectId(resposta.atividade_id),
+                        isCorreta: resposta.isCorreta,
+                        pontuacao: resposta.pontuacao
+                    };
+                    atividadeEmAndamento.respostas.push(respostaFormatada);
+                    console.log(`Nova resposta adicionada para atividade_id: ${resposta.atividade_id}. Exercicio_ID: ${exercicio._id}`);
+                }
             }
         }
 
-        // Se precisar atualizar outros campos da atividade, faça isso aqui
+        // Atualiza outros campos da atividade, se necessário
         for (const key in req.body) {
             if (key !== 'novasRespostas' && req.body.hasOwnProperty(key)) {
                 atividadeEmAndamento[key] = req.body[key];
@@ -165,7 +163,7 @@ const updateAtividadeEmAndamento = async (req, res) => {
         }
 
         await usuario.save();
-        console.log(`Atividade em andamento atualizada. ID: ${atividadeEmAndamento._id}`); // Log da atividade atualizada
+        console.log(`Atividade em andamento atualizada. ID: ${atividadeEmAndamento._id}`);
         res.status(200).json({ msg: 'Atividade em andamento atualizada com sucesso', atividadeEmAndamento });
 
     } catch (error) {
@@ -173,7 +171,6 @@ const updateAtividadeEmAndamento = async (req, res) => {
         res.status(500).json({ msg: 'Erro ao atualizar atividade em andamento' });
     }
 };
-
 
 
 // Delete AtividadeEmAndamento
