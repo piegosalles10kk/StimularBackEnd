@@ -7,17 +7,19 @@ const createAtividadeEmAndamento = async (req, res) => {
     const { grupoAtividadeId } = req.params; // ID do grupo de atividades
 
     try {
+        // Busca o grupo de atividades
         const grupoAtividade = await GrupoAtividades.findById(grupoAtividadeId).populate('atividades.exercicios');
-        
         if (!grupoAtividade) return res.status(404).json({ message: 'Grupo de atividades não encontrado.' });
 
         const pontuacaoPossivel = grupoAtividade.pontuacaoTotalDoGrupo;
 
         // Mapeia as respostas e valida
         const respostasValidas = respostas.map(resposta => {
+            // Verifica se a atividade existe
             const atividade = grupoAtividade.atividades.find(activity => activity._id.toString() === resposta.atividade_id.toString());
             if (!atividade) throw new Error(`Atividade não encontrada para atividade_id: ${resposta.atividade_id}`);
 
+            // Verifica se o exercício existe
             const exercicio = atividade.exercicios.find(exercise => exercise.exercicioId.toString() === resposta.exercicioId.toString());
             if (!exercicio) throw new Error(`Exercicio não encontrado para exercicioId: ${resposta.exercicioId} dentro da atividade_ID: ${resposta.atividade_id}`);
 
@@ -29,6 +31,24 @@ const createAtividadeEmAndamento = async (req, res) => {
                 pontuacao: resposta.pontuacao
             };
         });
+
+        // Verifica se já existe atividade_id igual no banco
+        for (const resposta of respostas) {
+            // Busca por atividades em andamento do usuário
+            const atividadesExistentes = await User.findOne({ 
+                _id: usuarioId,
+                'gruposDeAtividadesEmAndamento.respostas.atividade_id': resposta.atividade_id 
+            });
+
+            if (atividadesExistentes) {
+                // Remove todas as atividades com o mesmo atividade_id
+                await User.updateMany(
+                    { _id: usuarioId },
+                    { $pull: { gruposDeAtividadesEmAndamento: { 'respostas.atividade_id': resposta.atividade_id } } }
+                );
+                console.log(`Atividades com atividade_id: ${resposta.atividade_id} removidas com sucesso.`);
+            }
+        }
 
         // Estrutura da nova atividade em andamento
         const novaAtividadeEmAndamento = {
@@ -54,6 +74,7 @@ const createAtividadeEmAndamento = async (req, res) => {
         return res.status(400).json({ error: error.message });
     }
 };
+
 
 
 // Get AtividadeEmAndamento
