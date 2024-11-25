@@ -178,7 +178,16 @@ const updateAtividadeEmAndamento = async (req, res) => {
 // Função para atualizar a resposta de um exercício
 const updateRespostaAtividadeEmAndamento = async (req, res) => {
     const { grupoId } = req.params; // ID do grupo de atividades em andamento
-    const { atividade_id, exercicioId, alternativaId, isCorreta, pontuacao } = req.body; // Extrai os dados do corpo da requisição
+
+    const { atividade_id, exercicioId, alternativaId, isCorreta, pontuacao } = req.body;
+
+    // Log para verificar o conteúdo de req.body
+    console.log("Dados recebidos no corpo da requisição:", req.body);
+
+    // Adicione uma verificação para garantir que os valores não são undefined
+    if (!atividade_id || !exercicioId || isCorreta === undefined || pontuacao === undefined) {
+        return res.status(400).json({ message: 'Dados incompletos ou inválidos.' });
+    }
 
     try {
         const usuario = await User.findById(req.user._id); // Obtém o ID do usuário autenticado
@@ -186,16 +195,11 @@ const updateRespostaAtividadeEmAndamento = async (req, res) => {
             return res.status(404).json({ message: 'Usuário não encontrado!' });
         }
 
-        // Encontra o grupo de atividades em andamento pelo ID
-        const grupoAtividades = usuario.gruposDeAtividadesEmAndamento.find(grupo => 
-            grupo._id.toString() === grupoId
-        );
-
+        const grupoAtividades = usuario.gruposDeAtividadesEmAndamento.find(grupo => grupo._id.toString() === grupoId);
         if (!grupoAtividades) {
             return res.status(404).json({ message: 'Grupo de atividades em andamento não encontrado.' });
         }
 
-        // Verifica se a atividade existe dentro do grupo
         const atividadeEmAndamento = grupoAtividades.respostas.find(resp => 
             resp.atividade_id.toString() === atividade_id && resp.exercicioId.toString() === exercicioId
         );
@@ -205,7 +209,6 @@ const updateRespostaAtividadeEmAndamento = async (req, res) => {
             atividadeEmAndamento.isCorreta = isCorreta;
             atividadeEmAndamento.pontuacao = pontuacao;
             atividadeEmAndamento.alternativaId = alternativaId; // Atualiza alternativaId
-            
             console.log(`Resposta atualizada para exercício_id: ${exercicioId}, atividade_id: ${atividade_id}`);
         } else {
             // Se não existir, cria uma nova resposta
@@ -223,12 +226,12 @@ const updateRespostaAtividadeEmAndamento = async (req, res) => {
 
         await usuario.save(); // Salva as alterações no usuário
         res.status(200).json({ msg: 'Resposta atualizada com sucesso', grupoAtividades });
-
     } catch (error) {
         console.log('Erro ao atualizar resposta na atividade em andamento:', error);
         res.status(500).json({ msg: 'Erro ao atualizar resposta' });
     }
 };
+
    
 
 // Delete AtividadeEmAndamento
