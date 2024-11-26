@@ -3,7 +3,7 @@ const { User, GrupoAtividades } = require('../models/User');
 
 //POST AtividadeEmAndamento
 const createAtividadeEmAndamento = async (req, res) => {
-    const { respostas } = req.body; // Obtém as respostas do corpo da requisição
+    const { respostas } = req.body || []; // Obtém as respostas, se existirem
     const usuarioId = req.user._id; // ID do usuário autenticado
     const { grupoAtividadeId } = req.params; // ID do grupo de atividades
 
@@ -14,40 +14,43 @@ const createAtividadeEmAndamento = async (req, res) => {
 
         const pontuacaoPossivel = grupoAtividade.pontuacaoTotalDoGrupo;
 
-        // Mapeia as respostas e valida
-        const respostasValidas = respostas.map(resposta => {
-            // Verifica se a atividade existe
-            const atividade = grupoAtividade.atividades.find(activity => activity._id.toString() === resposta.atividade_id.toString());
-            if (!atividade) throw new Error(`Atividade não encontrada para atividade_id: ${resposta.atividade_id}`);
+        let respostasValidas = [];
+        
+        // Se respostas foram enviadas, valide-as
+        if (respostas && respostas.length > 0) {
+            respostasValidas = respostas.map(resposta => {
+                // Verifica se a atividade existe
+                const atividade = grupoAtividade.atividades.find(activity => activity._id.toString() === resposta.atividade_id.toString());
+                if (!atividade) throw new Error(`Atividade não encontrada para atividade_id: ${resposta.atividade_id}`);
 
-            // Verifica se o exercício existe
-            const exercicio = atividade.exercicios.find(exercise => exercise.exercicioId.toString() === resposta.exercicioId.toString());
-            if (!exercicio) throw new Error(`Exercicio não encontrado para exercicioId: ${resposta.exercicioId} dentro da atividade_ID: ${resposta.atividade_id}`);
+                // Verifica se o exercício existe
+                const exercicio = atividade.exercicios.find(exercise => exercise.exercicioId.toString() === resposta.exercicioId.toString());
+                if (!exercicio) throw new Error(`Exercicio não encontrado para exercicioId: ${resposta.exercicioId} dentro da atividade_ID: ${resposta.atividade_id}`);
 
-            // Retorna o objeto de resposta válido
-            return {
-                exercicioId: exercicio._id, // ID do exercício
-                atividade_id: new mongoose.Types.ObjectId(resposta.atividade_id), // ID da atividade
-                isCorreta: resposta.isCorreta,
-                pontuacao: resposta.pontuacao
-            };
-        });
-
-        // Verifica se já existe atividade_id igual no banco
-        for (const resposta of respostas) {
-            // Busca por atividades em andamento do usuário
-            const atividadesExistentes = await User.findOne({ 
-                _id: usuarioId,
-                'gruposDeAtividadesEmAndamento.respostas.atividade_id': resposta.atividade_id 
+                // Retorna o objeto de resposta válido
+                return {
+                    exercicioId: exercicio._id, // ID do exercício
+                    atividade_id: new mongoose.Types.ObjectId(resposta.atividade_id), // ID da atividade
+                    isCorreta: resposta.isCorreta,
+                    pontuacao: resposta.pontuacao,
+                };
             });
 
-            if (atividadesExistentes) {
-                // Remove todas as atividades com o mesmo atividade_id
-                await User.updateMany(
-                    { _id: usuarioId },
-                    { $pull: { gruposDeAtividadesEmAndamento: { 'respostas.atividade_id': resposta.atividade_id } } }
-                );
-                console.log(`Atividades com atividade_id: ${resposta.atividade_id} removidas com sucesso.`);
+            // Verifica se já existe atividade_id igual no banco
+            for (const resposta of respostas) {
+                const atividadesExistentes = await User.findOne({
+                    _id: usuarioId,
+                    'gruposDeAtividadesEmAndamento.respostas.atividade_id': resposta.atividade_id,
+                });
+
+                if (atividadesExistentes) {
+                    // Remove todas as atividades com o mesmo atividade_id
+                    await User.updateMany(
+                        { _id: usuarioId },
+                        { $pull: { gruposDeAtividadesEmAndamento: { 'respostas.atividade_id': resposta.atividade_id } } }
+                    );
+                    console.log(`Atividades com atividade_id: ${resposta.atividade_id} removidas com sucesso.`);
+                }
             }
         }
 
@@ -56,7 +59,7 @@ const createAtividadeEmAndamento = async (req, res) => {
             grupoAtividadesId: new mongoose.Types.ObjectId(grupoAtividadeId), // ID do grupo de atividades
             dataInicio: new Date(), // Captura a data e hora
             pontuacaoPossivel, // Pontuação total do grupo
-            respostas: respostasValidas // Respostas válidas
+            respostas: respostasValidas, // Respostas válidas (pode ser um array vazio)
         };
 
         console.log("Nova Atividade em Andamento:", novaAtividadeEmAndamento);
@@ -75,8 +78,6 @@ const createAtividadeEmAndamento = async (req, res) => {
         return res.status(400).json({ error: error.message });
     }
 };
-
-
 
 // Get AtividadeEmAndamento
 const getAtividadeEmAndamento = async (req, res) => {
