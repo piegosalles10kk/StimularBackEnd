@@ -110,5 +110,45 @@ const loginUser = async (req, res) => {
     }
 };
 
+const updateUserMoeda = async (req, res) => {
+    const id = req.params.id;
 
-module.exports = { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser };
+    // Extraia as informações de moeda do corpo da requisição
+    const { valor, dataDeCriacao } = req.body.moeda || {};
+
+    // Verifique se o valor é fornecido
+    if (valor === undefined) {
+        return res.status(400).json({ msg: 'Valor é obrigatório' });
+    }
+
+    try {
+        console.log('Dados recebidos para atualização do campo moeda:', req.body); // Loga os dados recebidos
+
+        // Primeiro, busque o usuário atual para obter a moeda existente
+        const user = await User.findById(id);
+
+        if (!user) {
+            return res.status(404).json({ msg: 'Usuário não encontrado' });
+        }
+
+        // Prepare o objeto de moeda a ser atualizado
+        const moedaUpdate = {
+            valor,
+            dataDeCriacao: dataDeCriacao || user.moeda.dataDeCriacao // Preserve o valor atual se não for fornecido
+        };
+
+        // Atualiza apenas o campo moeda do usuário
+        const updatedUser = await User.findByIdAndUpdate(
+            id,
+            { moeda: moedaUpdate },
+            { new: true }
+        );
+
+        res.status(200).json({ msg: 'Moeda do usuário atualizada com sucesso', user: updatedUser });
+    } catch (err) {
+        console.log('Erro ao atualizar moeda:', err);
+        res.status(500).json({ msg: 'Erro ao atualizar moeda do usuário' });
+    }
+};
+
+module.exports = { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser, updateUserMoeda };
