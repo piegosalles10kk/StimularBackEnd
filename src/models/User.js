@@ -110,7 +110,10 @@ const UserSchema = new mongoose.Schema({
     tipoDeConta: { type: String, required: true },
     conquistas: [ConquistasSchema],
     validade: { type: String, required: false },
-    moeda: { type: Number, required: false },
+    moeda: { 
+        valor: { type: String, required: false },
+        dataDeCriacao : { type: String, required: false }
+     },
     nivel: { type: Number, required: false },
     nome: { type: String, required: true },
     email: { type: String, required: true },
