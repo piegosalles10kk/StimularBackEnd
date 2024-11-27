@@ -9,11 +9,12 @@ const createAtividadeFinalizada = async (req, res) => {
     try {
         // Procurando o usuário com grupos de atividades em andamento
         const usuario = await User.findById(usuarioId).populate('gruposDeAtividadesEmAndamento');
+
         if (!usuario) {
             console.error('Usuário não encontrado!');
             return res.status(404).json({ message: 'Usuário não encontrado!' });
         }
-        
+
         console.log("Usuário encontrado:", usuario.nome);
 
         // Encontrar a atividade em andamento baseada no grupo de atividades
@@ -36,8 +37,10 @@ const createAtividadeFinalizada = async (req, res) => {
             pontuacao: resposta.pontuacao // Certifique-se de que a pontuação é sempre preenchida
         }));
 
-        // Calcule a pontuação final
-        const pontuacaoFinal = respostasFinais.reduce((total, resposta) => total + (resposta.pontuacao || 0), 0);
+        // Calcule a pontuação final considerando apenas as respostas corretas
+        const pontuacaoFinal = respostasFinais
+            .filter(resposta => resposta.isCorreta) // Filtra somente as respostas corretas
+            .reduce((total, resposta) => total + (resposta.pontuacao || 0), 0);
 
         const porcentagem = pontuacaoPossivel > 0 ? (pontuacaoFinal / pontuacaoPossivel) * 100 : 0;
 
@@ -72,6 +75,7 @@ const createAtividadeFinalizada = async (req, res) => {
         return res.status(500).json({ msg: 'Erro ao criar atividade finalizada', error: error.message });
     }
 };
+
 
 // Get AtividadeFinalizada
 const getAtividadeFinalizada = async (req, res) => {
