@@ -241,24 +241,32 @@ const deleteAtividadeEmAndamento = async (req, res) => {
 
     try {
         const usuario = await User.findById(req.user._id);
+
         if (!usuario) {
             return res.status(404).json({ message: 'Usuário não encontrado!' });
         }
+
+        // Verifica se a atividade em andamento existe
         const atividadeEmAndamento = usuario.gruposDeAtividadesEmAndamento.id(id);
+
         if (!atividadeEmAndamento) {
             return res.status(404).json({ message: 'Atividade em andamento não encontrada!' });
         }
 
-        // Remove a atividade em andamento do array do usuário
-        atividadeEmAndamento.remove();
-        await usuario.save();
+        // Remove a atividade em andamento do array do usuário usando $pull
+        await User.updateOne(
+            { _id: req.user._id },
+            { $pull: { gruposDeAtividadesEmAndamento: { _id: id } } }
+        );
 
         res.status(200).json({ msg: 'Atividade em andamento deletada com sucesso' });
+
     } catch (error) {
         console.log('Erro ao deletar atividade em andamento:', error);
         res.status(500).json({ msg: 'Erro ao deletar atividade em andamento' });
     }
 };
+
 
 module.exports = {
     createAtividadeEmAndamento,
