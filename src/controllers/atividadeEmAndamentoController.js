@@ -13,9 +13,8 @@ const createAtividadeEmAndamento = async (req, res) => {
         if (!grupoAtividade) return res.status(404).json({ message: 'Grupo de atividades não encontrado.' });
 
         const pontuacaoPossivel = grupoAtividade.pontuacaoTotalDoGrupo;
-
         let respostasValidas = [];
-        
+
         // Se respostas foram enviadas, valide-as
         if (respostas && respostas.length > 0) {
             respostasValidas = respostas.map(resposta => {
@@ -35,24 +34,13 @@ const createAtividadeEmAndamento = async (req, res) => {
                     pontuacao: resposta.pontuacao,
                 };
             });
-
-            // Verifica se já existe atividade_id igual no banco
-            for (const resposta of respostas) {
-                const atividadesExistentes = await User.findOne({
-                    _id: usuarioId,
-                    'gruposDeAtividadesEmAndamento.respostas.atividade_id': resposta.atividade_id,
-                });
-
-                if (atividadesExistentes) {
-                    // Remove todas as atividades com o mesmo atividade_id
-                    await User.updateMany(
-                        { _id: usuarioId },
-                        { $pull: { gruposDeAtividadesEmAndamento: { 'respostas.atividade_id': resposta.atividade_id } } }
-                    );
-                    console.log(`Atividades com atividade_id: ${resposta.atividade_id} removidas com sucesso.`);
-                }
-            }
         }
+
+        // Remove todas as atividades em andamento do usuário (apaga atividades antigas)
+        await User.updateOne(
+            { _id: usuarioId },
+            { $set: { gruposDeAtividadesEmAndamento: [] } } // Limpa todas as atividades em andamento
+        );
 
         // Estrutura da nova atividade em andamento
         const novaAtividadeEmAndamento = {
@@ -78,6 +66,7 @@ const createAtividadeEmAndamento = async (req, res) => {
         return res.status(400).json({ error: error.message });
     }
 };
+
 
 // Get AtividadeEmAndamento
 const getAtividadeEmAndamento = async (req, res) => {
