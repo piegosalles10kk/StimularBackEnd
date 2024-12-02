@@ -12,6 +12,7 @@
   "description": "",
   "dependencies": {
     "@azure/storage-blob": "^12.25.0",
+    "@types/nodemailer": "^6.4.17",
     "azure-storage": "^2.10.7",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
@@ -21,6 +22,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.7.0",
     "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.16",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^11.0.3"

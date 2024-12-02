@@ -11,6 +11,7 @@ const grupoAtividadesRoutes = require('./src/routes/grupoAtividadesRoutes');
 const atividadeEmAndamentoRoutes = require('./src/routes/atividadeEmAndamentoRoutes');
 const atividadeFinalizadaRoutes = require('./src/routes/atividadeFinalizadaRoutes');
 const uploadMidia = require('./src/routes/uploadMidiaRoutes');
+const sendEmailRoutes = require('./src/routes/sendEmailRoutes');
 const { PORT } = require('./config');
 
 const app = express();
@@ -30,6 +31,7 @@ app.use(grupoAtividadesRoutes);
 app.use(atividadeEmAndamentoRoutes);
 app.use(atividadeFinalizadaRoutes);
 app.use(uploadMidia);
+app.use(sendEmailRoutes);
 
 // Connect to MongoDB
 connectDB();

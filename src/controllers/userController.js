@@ -151,4 +151,81 @@ const updateUserMoeda = async (req, res) => {
     }
 };
 
-module.exports = { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser, updateUserMoeda };
+
+const updatePasswordRecovery = async (req, res) => {
+    const { email, codigoRecuperarSenha, senha, confirmarSenha } = req.body;
+
+    // Verifica se a senha e a confirmação da senha são fornecidas e se coincidem
+    if (!senha || senha !== confirmarSenha) {
+        return res.status(422).json({ msg: 'Senhas não conferem ou campos obrigatórios faltando!' });
+    }
+
+    try {
+        // Busca o usuário pelo email
+        const user = await User.findOne({ email: email });
+        if (!user) {
+            return res.status(404).json({ msg: 'Usuário não encontrado' });
+        }
+
+        // Verifica se o código de recuperação de senha está correto
+        if (user.codigoRecuperarSenha !== codigoRecuperarSenha) {
+            return res.status(400).json({ msg: 'Código de recuperação de senha incorreto' });
+        }
+
+        // Gera um salt e uma hash para a nova senha
+        const salt = await bcrypt.genSalt(12);
+        const passwordHash = await bcrypt.hash(senha, salt);
+
+        // Atualiza a senha do usuário e remove o código de recuperação de senha
+        user.senha = passwordHash;
+        user.codigoRecuperarSenha = undefined;
+        await user.save();
+
+        res.status(200).json({ msg: 'Senha atualizada com sucesso!' });
+    } catch (error) {
+        console.log('Erro ao atualizar a senha:', error);
+        res.status(500).json({ msg: 'Erro ao atualizar a senha' });
+    }
+};
+
+
+const updatePassword = async (req, res) => {
+    const id = req.params.id;
+    const { senhaAtual, senhaNova, confirmarSenhaNova } = req.body;
+
+    // Verifica se a nova senha e a confirmação da nova senha são fornecidas e se coincidem
+    if (!senhaNova || senhaNova !== confirmarSenhaNova) {
+        return res.status(422).json({ msg: 'Novas senhas não conferem ou campos obrigatórios faltando!' });
+    }
+
+    try {
+        // Busca o usuário pelo ID
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ msg: 'Usuário não encontrado' });
+        }
+
+        // Verifica se a senha atual está correta
+        const isMatch = await bcrypt.compare(senhaAtual, user.senha);
+        if (!isMatch) {
+            return res.status(401).json({ msg: 'Senha atual incorreta' });
+        }
+
+        // Gera um salt e uma hash para a nova senha
+        const salt = await bcrypt.genSalt(12);
+        const passwordHash = await bcrypt.hash(senhaNova, salt);
+
+        // Atualiza a senha do usuário
+        user.senha = passwordHash;
+        await user.save();
+
+        res.status(200).json({ msg: 'Senha atualizada com sucesso!' });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ msg: 'Erro ao atualizar a senha' });
+    }
+};
+
+
+
+module.exports = { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser, updateUserMoeda, updatePassword, updatePasswordRecovery };
