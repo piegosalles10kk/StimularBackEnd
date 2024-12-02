@@ -180,7 +180,7 @@ const filterGrupoAtividadesByNivel = async (req, res) => {
 
         // Criação do filtro completo
         const filter = {
-            nivelDaAtividade: { $lte: nivel },
+            nivelDaAtividade: { $gte: nivel },
             dominio: { $in: grupos },
             _id: { $nin: gruposDeAtividadesFinalizadas },
         };
