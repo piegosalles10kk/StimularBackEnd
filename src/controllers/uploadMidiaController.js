@@ -42,7 +42,7 @@ const uploadMidia = async (req, res) => {
         }
 
         const token = process.env.TOKEN; // Certifique-se de que o token está configurado no seu ambiente
-        return res.status(201).json({ url: `https://stimularmidias.blob.core.windows.net/midias/${filename}${token}`, tipo: tipoArquivo });
+        return res.status(201).json({ url: `https://stimularmidias.blob.core.windows.net/midias/${filename}`, tipo: tipoArquivo });
     }
 
     if (req.body.image) {
@@ -86,8 +86,6 @@ const uploadMidia = async (req, res) => {
             console.error("Erro ao enviar a imagem para o Azure Blob Storage:", error);
             return res.status(500).json({ error: 'Upload failed' });
         }
-
-        const token = process.env.TOKEN; // Certifique-se de que o token está configurado no seu ambiente
         return res.status(201).json({ url: `https://stimularmidias.blob.core.windows.net/midias/${filename}`, tipo: tipoArquivo });
     }
 
