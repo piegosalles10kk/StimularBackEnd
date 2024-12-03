@@ -8,6 +8,7 @@ const uploadMidia = async (req, res) => {
     console.log('Iniciando uploadMidia');
     const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
     const containerClient = blobServiceClient.getContainerClient('midias');
+    const userId = req.params.id; // Obtendo o ID do usuário dos parâmetros da requisição
     let filename;
     let tipoArquivo;
 
@@ -17,12 +18,20 @@ const uploadMidia = async (req, res) => {
         console.log('Arquivo recebido:', req.file);
         let file = req.file;
         tipoArquivo = file.mimetype;
-        filename = uuid.v4().toString() + path.extname(file.originalname);
+        filename = `${userId}`; // Usando ID do usuário no nome do arquivo
+
         console.log('Tipo de arquivo:', tipoArquivo);
         console.log('Nome do arquivo:', filename);
 
         const blockBlobClient = containerClient.getBlockBlobClient(filename);
         try {
+            // Verifica se o blob já existe e, se sim, deleta-o
+            const exists = await blockBlobClient.exists();
+            if (exists) {
+                await blockBlobClient.delete();
+                console.log('Arquivo existente deletado:', filename);
+            }
+
             await blockBlobClient.uploadData(file.buffer, {
                 blobHTTPHeaders: { blobContentType: tipoArquivo }
             });
@@ -57,11 +66,18 @@ const uploadMidia = async (req, res) => {
             return res.status(400).json({ error: 'Unsupported file type' });
         }
 
-        filename = uuid.v4().toString() + extension;
+        filename = `${userId}-${uuid.v4().toString() + extension}`; // Usando ID do usuário no nome do arquivo
         let buffer = Buffer.from(matches[2], 'base64');
 
         const blockBlobClient = containerClient.getBlockBlobClient(filename);
         try {
+            // Verifica se o blob já existe e, se sim, deleta-o
+            const exists = await blockBlobClient.exists();
+            if (exists) {
+                await blockBlobClient.delete();
+                console.log('Imagem existente deletada:', filename);
+            }
+
             await blockBlobClient.uploadData(buffer, {
                 blobHTTPHeaders: { blobContentType: tipoArquivo }
             });
@@ -100,6 +116,5 @@ function getExtension(mimeType) {
     }
 }
 
-module.exports = {
-    uploadMidia
-};
+module.exports = { uploadMidia };
+
