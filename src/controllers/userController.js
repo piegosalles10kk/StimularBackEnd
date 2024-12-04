@@ -103,8 +103,8 @@ const loginUser = async (req, res) => {
     }
     try {
         const secret = process.env.SECRET;
-        const token = jwt.sign({ id: user._id, tipoDeConta: user.tipoDeConta, nivel: user.nivel, grupo: user.grupo }, secret);
-        res.status(200).json({ msg: 'Autenticação realizada com sucesso', token, tipoDeConta: user.tipoDeConta, grupoDoUser: user.grupo });
+        const token = jwt.sign({ id: user._id, tipoDeConta: user.tipoDeConta, nivel: user.nivel, grupo: user.grupo, ativo: user.ativo }, secret);
+        res.status(200).json({ msg: 'Autenticação realizada com sucesso', token, tipoDeConta: user.tipoDeConta, grupoDoUser: user.grupo, ativo: user.ativo });
     } catch (err) {
         console.log(err);
         res.status(500).json({ msg: 'Erro ao autenticar usuário' });
