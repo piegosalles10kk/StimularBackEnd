@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser, updateUserMoeda, updatePasswordRecovery, updatePassword } = require('../controllers/userController');
+const { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser, updateUserMoeda, updatePasswordRecovery, updatePassword, getAllUserAtivos, AtivoOuInativo } = require('../controllers/userController');
 const checkToken = require('../middleware/checkToken');
 
 router.post('/auth/register', createUser);
@@ -13,7 +13,9 @@ router.put('/auth/update-password/:id', checkToken, updatePassword);
 
 router.get('/user', getAllUser);
 
-router.get('/user-ativos', checkToken, getAllUser);
+router.get('/user-ativos', checkToken, getAllUserAtivos);
+
+router.put('/usuario/status/:id', checkToken, AtivoOuInativo);
 
 router.get('/user/:id', checkToken, getUser);
 

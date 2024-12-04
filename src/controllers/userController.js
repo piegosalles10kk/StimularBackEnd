@@ -238,6 +238,31 @@ const updatePassword = async (req, res) => {
     }
 };
 
+const AtivoOuInativo = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Encontrar o usuário pelo ID
+        const user = await User.findById(id);
+
+        if (!user) {
+            return res.status(404).json({ error: 'Usuário não encontrado' });
+        }
+
+        // Alternar o status de ativo
+        user.ativo = !user.ativo;
+
+        // Salvar as alterações
+        await user.save();
+
+        res.status(200).json({ message: 'Status de ativo atualizado com sucesso', ativo: user.ativo });
+    } catch (error) {
+        console.error("Erro ao atualizar o status de ativo do usuário:", error);
+        res.status(500).json({ error: 'Erro ao atualizar o status do usuário' });
+    }
+};
 
 
-module.exports = { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser, updateUserMoeda, updatePassword, updatePasswordRecovery };
+
+
+module.exports = { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser, updateUserMoeda, updatePassword, updatePasswordRecovery, getAllUserAtivos, AtivoOuInativo };
