@@ -18,9 +18,9 @@ const getUser = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-        const { email, nome, foto, telefone, dataDeNascimento, senha, confirmarSenha, tipoDeConta, profissional, moeda, validade, nivel, grupo, conquistas } = req.body;
+        const { email, nome, foto, telefone, dataDeNascimento, senha, confirmarSenha, tipoDeConta, profissional, moeda, validade, nivel, grupo, conquistas, ativo } = req.body;
         
-        if (!email || !nome || !telefone || !dataDeNascimento || !senha || senha !== confirmarSenha || !tipoDeConta) {
+        if (!email || !nome || !telefone || !dataDeNascimento || !senha || senha !== confirmarSenha || !tipoDeConta || !profissional || !moeda || !validade || !nivel || !grupo || !conquistas || !ativo) {
             return res.status(422).json({ message: 'Campos obrigatórios faltando ou senhas não conferem!' });
         }
     
@@ -45,7 +45,8 @@ const createUser = async (req, res) => {
             nivel, 
             foto, 
             grupo, 
-            conquistas 
+            conquistas,
+            ativo: true 
         });
     
         try {

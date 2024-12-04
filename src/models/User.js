@@ -131,7 +131,8 @@ const UserSchema = new mongoose.Schema({
     pacientes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Pacientes' }],
     gruposDeAtividadesCriadas: [{ type: mongoose.Schema.Types.ObjectId, ref: 'GrupoAtividades', required: false }],
     recupararSenha: { type: Boolean, required: false },
-    codigoRecuperarSenha: { type: String, required: false }
+    codigoRecuperarSenha: { type: String, required: false },
+    ativo: { type: Boolean, required: true }
 });
 
 // Modelos
