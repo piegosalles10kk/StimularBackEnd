@@ -25,7 +25,7 @@ const AtividadesSchema = new mongoose.Schema({
     fotoDaAtividade: { type: String, required: false },
     tipoDeAtividade: { type: String, required: true },
     exercicios: [ExerciciosSchema],
-    pontuacaoTotalAtividade: { type: Number, required: true }
+    pontuacaoTotalDoGrupo: { type: Number, required: true, default: 0 }
 });
 
 // Esquema para Grupo de Atividades

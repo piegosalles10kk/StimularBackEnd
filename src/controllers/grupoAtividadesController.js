@@ -13,47 +13,64 @@ const getGrupoAtividades = async (req, res) => {
 
 // Create GrupoAtividades
 const createGrupoAtividades = async (req, res) => {
-    const criadorId = req.user._id; // Pegando o id do criador a partir do token de autenticação
-    console.log('Criador ID:', criadorId); // Log do ID do criador
-    const { nomeGrupo, nivelDaAtividade, imagem, dominio, descricao, atividades, pontuacaoTotalDoGrupo, identificador } = req.body;
-    console.log('Payload recebido:', req.body); // Log do payload recebido
-    
     try {
-        console.log('Tentando encontrar o criador com ID:', criadorId);
+        const criadorId = req.user._id; // Pegando o ID do criador a partir do token de autenticação
+        console.log('Criador ID:', criadorId); // Log do ID do criador
+
+        const { nomeGrupo, nivelDaAtividade, imagem, dominio, descricao, atividades, identificador } = req.body;
+        console.log('Payload recebido:', req.body); // Log do payload recebido
+
+        // Encontrar o criador pelo ID
         const criador = await User.findById(criadorId, '-senha');
-        //console.log('Criador encontrado:', criador);
         if (!criador) {
             return res.status(404).json({ message: 'Criador não encontrado!' });
         }
 
-        //salvar os exercícios diretamente dentro das atividades
+        // Inicializar um array para armazenar as atividades salvas
         const savedAtividades = [];
+        let pontuacaoTotalDoGrupo = 0;
+
+        // Processar cada atividade recebida
         for (const atividade of atividades) {
+            // Garantir que a pontuação seja um número
+            atividade.pontuacaoTotalAtividade = Number(atividade.pontuacaoTotalAtividade) || 0;
+            console.log(`Pontuação da atividade "${atividade.nomdeDaAtividade}":`, atividade.pontuacaoTotalAtividade);
+
+            // Criar e salvar a nova atividade
             const newAtividade = new Atividades(atividade);
             await newAtividade.save();
-            savedAtividades.push(newAtividade);
+            savedAtividades.push(newAtividade); // Adicionar atividade ao array
+
+            // Somar a pontuação total
+            pontuacaoTotalDoGrupo += atividade.pontuacaoTotalAtividade;
         }
 
+        // Log das atividades salvas
+        console.log('Atividades salvas:', savedAtividades);
+        console.log('Pontuação total calculada do grupo:', pontuacaoTotalDoGrupo);
+
+        // Criar objeto para o grupo de atividades
         const grupoAtividades = new GrupoAtividades({
             nomeGrupo,
-            nivelDaAtividade,
-            identificador,
             imagem,
+            identificador,
+            nivelDaAtividade,
             descricao,
             criador: { id: criadorId, nome: criador.nome },
             dominio,
-            atividades: savedAtividades, // Salvando os objetos completos das atividades
-            pontuacaoTotalDoGrupo
+            atividades: savedAtividades, // Usar as atividades salvas
+            pontuacaoTotalDoGrupo // A pontuação total do grupo calculada
         });
 
-        console.log('Tentando salvar o grupo de atividades:', grupoAtividades);
+        // Salvar o grupo de atividades no banco de dados
         await grupoAtividades.save();
         res.status(201).json({ msg: 'Grupo de Atividades criado com sucesso' });
     } catch (error) {
-        console.log('Erro ao criar Grupo de Atividades:', error); // Log do erro
+        console.error('Erro ao criar Grupo de Atividades:', error); // Log do erro
         res.status(500).json({ msg: 'Erro ao criar Grupo de Atividades' });
     }
 };
+
 
 // Update GrupoAtividades by ID
 const updateGrupoAtividades = async (req, res) => {
