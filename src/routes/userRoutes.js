@@ -13,6 +13,8 @@ router.put('/auth/update-password/:id', checkToken, updatePassword);
 
 router.get('/user', getAllUser);
 
+router.get('/user-ativos', checkToken, getAllUser);
+
 router.get('/user/:id', checkToken, getUser);
 
 router.put('/user/:id', checkToken, updateUser);

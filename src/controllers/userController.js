@@ -8,6 +8,17 @@ const getAllUser = async (req, res) => {
     res.status(200).json({ users });
 };
 
+const getAllUserAtivos = async (req, res) => {
+    try {
+        const users = await User.find({ ativo: true }, '-senha');
+        res.status(200).json({ users });
+    } catch (error) {
+        console.error("Erro ao buscar usuários:", error);
+        res.status(500).json({ error: 'Erro ao buscar usuários' });
+    }
+};
+
+
 const getUser = async (req, res) => {
     const id = req.params.id;
     const user = await User.findById(id, '-senha');
