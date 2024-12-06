@@ -8,7 +8,7 @@ const uploadMidia = async (req, res) => {
     console.log('Iniciando uploadMidia');
     const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
     const containerClient = blobServiceClient.getContainerClient('midias');
-    const userId = req.params.id; // Obtendo o ID do usuário dos parâmetros da requisição
+    const userId = req.params.id;
     let filename;
     let tipoArquivo;
 

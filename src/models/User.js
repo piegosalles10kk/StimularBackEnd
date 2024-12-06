@@ -10,8 +10,8 @@ const AlternativasSchema = new mongoose.Schema({
 const ExerciciosSchema = new mongoose.Schema({
     exercicioId: { type: mongoose.Schema.Types.ObjectId, required: true, default: () => new mongoose.Types.ObjectId() },
     midia: {
-        tipoDeMidia: { type: String, required: true },
-        url: { type: String, required: true }
+        tipoDeMidia: { type: String, required: false },
+        url: { type: String, required: false }
     },
     enunciado: { type: String, required: true },
     exercicio: { type: String, required: false },
