@@ -18,10 +18,7 @@ const createGrupoAtividades = async (req, res) => {
         console.log('Criador ID:', criadorId); // Log do ID do criador
 
         const { nomeGrupo, nivelDaAtividade, imagem, dominio, descricao, atividades, identificador } = req.body;
-        console.log('Payload recebido:', req.body); // Log do payload recebido
-
-        // Encontrar o criador pelo ID
-        const criador = await User.findById(criadorId, '-senha');
+        console.dir(req.body, { depth: null });        const criador = await User.findById(criadorId, '-senha');
         if (!criador) {
             return res.status(404).json({ message: 'Criador não encontrado!' });
         }

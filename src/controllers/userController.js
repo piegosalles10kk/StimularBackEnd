@@ -101,26 +101,42 @@ const deleteUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
     const { email, senha } = req.body;
+
     if (!email || !senha) {
         return res.status(422).json({ message: 'Email e senha são obrigatórios!' });
     }
+
     const user = await User.findOne({ email });
+
     if (!user) {
         return res.status(404).json({ message: 'Usuário não cadastrado!' });
     }
+
     const checkPassword = await bcrypt.compare(senha, user.senha);
+
     if (!checkPassword) {
         return res.status(422).json({ message: 'Senha inválida!' });
     }
+
     try {
         const secret = process.env.SECRET;
         const token = jwt.sign({ id: user._id, tipoDeConta: user.tipoDeConta, nivel: user.nivel, grupo: user.grupo, ativo: user.ativo }, secret);
-        res.status(200).json({ msg: 'Autenticação realizada com sucesso', token, tipoDeConta: user.tipoDeConta, grupoDoUser: user.grupo, ativo: user.ativo });
+
+        // Inclua o ID do usuário na resposta
+        res.status(200).json({
+            msg: 'Autenticação realizada com sucesso',
+            token,
+            tipoDeConta: user.tipoDeConta,
+            grupoDoUser: user.grupo,
+            ativo: user.ativo,
+            id: user._id // Adicionando o ID do usuário aqui
+        });
     } catch (err) {
         console.log(err);
         res.status(500).json({ msg: 'Erro ao autenticar usuário' });
     }
 };
+
 
 const updateUserMoeda = async (req, res) => {
     const id = req.params.id;
