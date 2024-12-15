@@ -29,45 +29,63 @@ const getUser = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-        const { email, nome, foto, telefone, dataDeNascimento, senha, confirmarSenha, tipoDeConta, profissional, moeda, validade, nivel, grupo, conquistas, ativo } = req.body;
-        
-        if (!email || !nome || !telefone || !dataDeNascimento || !senha || senha !== confirmarSenha || !tipoDeConta || !profissional || !moeda || !validade || !nivel || !grupo || !conquistas || !ativo) {
-            return res.status(422).json({ message: 'Campos obrigatórios faltando ou senhas não conferem!' });
-        }
+    const { email, nome, foto, telefone, dataDeNascimento, senha, confirmarSenha, tipoDeConta, profissional, moeda, validade, nivel, ativo } = req.body;
+
+    // Log do payload recebido
+    console.log('Payload recebido:', req.body);
+
+    // Verificar campos obrigatórios
+    const missingFields = [];
+    if (!email) missingFields.push('email');
+    if (!nome) missingFields.push('nome');
+    if (!telefone) missingFields.push('telefone');
+    if (!dataDeNascimento) missingFields.push('dataDeNascimento');
+    if (!senha) missingFields.push('senha');
+    if (senha !== confirmarSenha) missingFields.push('confirmarSenha (senhas não conferem)');
+    if (!tipoDeConta) missingFields.push('tipoDeConta');
+    if (!profissional) missingFields.push('profissional');
+    if (!moeda) missingFields.push('moeda');
+    if (!validade) missingFields.push('validade');
+    if (!nivel) missingFields.push('nivel');    
+    if (!ativo) missingFields.push('ativo');
+
+    if (missingFields.length > 0) {
+        console.log('Campos obrigatórios faltando:', missingFields.join(', '));
+        return res.status(422).json({ message: `Campos obrigatórios faltando: ${missingFields.join(', ')}` });
+    }
+
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+        return res.status(422).json({ message: 'Email já cadastrado!' });
+    }
+
+    const salt = await bcrypt.genSalt(12);
+    const passwordHash = await bcrypt.hash(senha, salt);
     
-        const userExists = await User.findOne({ email });
-        if (userExists) {
-            return res.status(422).json({ message: 'Email já cadastrado!' });
-        }
-    
-        const salt = await bcrypt.genSalt(12);
-        const passwordHash = await bcrypt.hash(senha, salt);
-        
-        const user = new User({ 
-            email, 
-            nome, 
-            telefone, 
-            dataDeNascimento, 
-            senha: passwordHash, 
-            tipoDeConta, 
-            profissional,
-            moeda, 
-            validade, 
-            nivel, 
-            foto, 
-            grupo, 
-            conquistas,
-            ativo: true 
-        });
-    
-        try {
-            await user.save();
-            res.status(201).json({ msg: 'Usuário criado com sucesso' });
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({ msg: 'Erro ao criar usuário' });
-        }
-    };
+    const user = new User({ 
+        email, 
+        nome, 
+        telefone, 
+        dataDeNascimento, 
+        senha: passwordHash, 
+        tipoDeConta, 
+        profissional,
+        moeda, 
+        validade, 
+        nivel, 
+        foto,
+        ativo: true 
+    });
+
+    try {
+        await user.save();
+        res.status(201).json({ msg: 'Usuário criado com sucesso' });
+    } catch (error) {
+        console.log('Erro ao criar usuário:', error);
+        res.status(500).json({ msg: 'Erro ao criar usuário' });
+    }
+};
+
     
 const updateUser = async (req, res) => {
     const id = req.params.id;
