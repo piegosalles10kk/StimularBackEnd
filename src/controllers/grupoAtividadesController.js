@@ -73,27 +73,48 @@ const createGrupoAtividades = async (req, res) => {
 const updateGrupoAtividades = async (req, res) => {
     const id = req.params.id;
     const updates = Object.keys(req.body);
-    const allowedUpdates = ['nivelDaAtividade', 'criador', 'dominio','imagem','descricao', 'nomeGrupo', 'atividades', 'pontuacaoTotalDoGrupo'];
-    const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
-
-    if (!isValidOperation) {
-        return res.status(400).json({ error: 'Atualizações inválidas!' });
+    const allowedUpdates = ['nivelDaAtividade', 'criador', 'dominio', 'imagem', 'descricao', 'nomeGrupo', 'atividades', 'pontuacaoTotalDoGrupo'];
+  
+    // Logs detalhados para debug
+    console.log("ID do Grupo:", id);
+    console.log("Propriedades para atualização:", updates.join(", "));
+    console.log("Objeto recebido para atualização:", JSON.stringify(req.body, null, 2));
+  
+    // Filtrar atualizações apenas para as permitidas
+    const filteredUpdates = updates.filter(update => allowedUpdates.includes(update));
+    console.log("Propriedades filtradas para atualização:", filteredUpdates.join(", "));
+  
+    if (filteredUpdates.length !== updates.length) {
+      console.log("Algumas atualizações foram filtradas porque não são permitidas.");
     }
-
+  
     try {
-        const grupoAtividades = await GrupoAtividades.findById(id);
-        if (!grupoAtividades) {
-            return res.status(404).json({ msg: 'Grupo de Atividades não encontrado' });
-        }
-
-        updates.forEach((update) => grupoAtividades[update] = req.body[update]);
-        await grupoAtividades.save();
-        res.status(200).json({ msg: 'Grupo de Atividades atualizado com sucesso' });
+      console.log(`Buscando grupo de atividades com o ID: ${id}`);
+      const grupoAtividades = await GrupoAtividades.findById(id);
+  
+      if (!grupoAtividades) {
+        console.log("Grupo de Atividades não encontrado pelo ID:", id);
+        return res.status(404).json({ msg: 'Grupo de Atividades não encontrado' });
+      }
+  
+      // Aplicar apenas as atualizações filtradas
+      filteredUpdates.forEach((update) => {
+        console.log(`Atualizando ${update} para ${req.body[update]}`);
+        grupoAtividades[update] = req.body[update];
+      });
+  
+      console.log("Grupo de Atividades antes de salvar:", JSON.stringify(grupoAtividades, null, 2));
+      await grupoAtividades.save();
+      console.log("Grupo de Atividades atualizado com sucesso:", JSON.stringify(grupoAtividades, null, 2));
+      res.status(200).json({ msg: 'Grupo de Atividades atualizado com sucesso' });
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ msg: 'Erro ao atualizar Grupo de Atividades' });
+      console.log("Erro ao atualizar Grupo de Atividades:", error);
+      res.status(500).json({ msg: 'Erro ao atualizar Grupo de Atividades' });
     }
-};
+  };
+  
+  
+  
 
 // Delete GrupoAtividades by ID
 const deleteGrupoAtividades = async (req, res) => {
