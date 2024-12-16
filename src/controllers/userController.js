@@ -29,7 +29,7 @@ const getUser = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-    const { email, nome, foto, telefone, dataDeNascimento, senha, confirmarSenha, tipoDeConta, profissional, moeda, validade, nivel, ativo } = req.body;
+    const { email, nome, foto, telefone, dataDeNascimento, senha, confirmarSenha, tipoDeConta, profissional, moeda, validade, ativo } = req.body;
 
     // Log do payload recebido
     console.log('Payload recebido:', req.body);
@@ -45,8 +45,7 @@ const createUser = async (req, res) => {
     if (!tipoDeConta) missingFields.push('tipoDeConta');
     if (!profissional) missingFields.push('profissional');
     if (!moeda) missingFields.push('moeda');
-    if (!validade) missingFields.push('validade');
-    if (!nivel) missingFields.push('nivel');    
+    if (!validade) missingFields.push('validade');    
     if (!ativo) missingFields.push('ativo');
 
     if (missingFields.length > 0) {
@@ -72,7 +71,6 @@ const createUser = async (req, res) => {
         profissional,
         moeda, 
         validade, 
-        nivel, 
         foto,
         ativo: true 
     });
