@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { getGrupoAtividades, createGrupoAtividades, updateGrupoAtividades, deleteGrupoAtividades, filterGrupoAtividades, addExercicioToAtividade, filterGrupoAtividadesByNivel } = require('../controllers/grupoAtividadesController');
+const { getGrupoAtividades, createGrupoAtividades, updateGrupoAtividades, deleteGrupoAtividades, filterGrupoAtividades, addExercicioToAtividade, filterGrupoAtividadesByNivel, createGrupoAtividadesAuto } = require('../controllers/grupoAtividadesController');
 const checkToken = require('../middleware/checkToken');
 
 router.post('/grupoatividades', checkToken, createGrupoAtividades);
+router.post('/grupoatividadesAuto', checkToken, createGrupoAtividadesAuto);
 router.get('/grupoatividades', filterGrupoAtividades);
 router.get('/grupoatividades/:id', checkToken, getGrupoAtividades);
 router.put('/grupoatividades/:id', checkToken, updateGrupoAtividades);

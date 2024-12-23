@@ -25,6 +25,7 @@ const AtividadesSchema = new mongoose.Schema({
             id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
             nome: { type: String, required: true }
         },
+        dominio: [],
         idade: { type: Number, required: true },
         marco: { type: String, required: true },
         nomdeDaAtividade: { type: String, required: true },
@@ -33,10 +34,11 @@ const AtividadesSchema = new mongoose.Schema({
         tipoDeAtividade: { type: String, required: true },
         exercicios: [ExerciciosSchema],
         pontuacaoTotalDoGrupo: { type: Number, required: true, default: 0 }
-    });
+    }, { timestamps: true });
 
 // Esquema para Grupo de Atividades
 const GrupoAtividadesSchema = new mongoose.Schema({
+    dataCriacao: { type: Date, required: true },
     nomeGrupo: { type: String, required: true },
     imagem: { type: String, required: true },
     identificador: { type: String, required: true },
@@ -70,7 +72,7 @@ const GruposDeAtividadesEmAndamentoSchema = new mongoose.Schema({
 // Esquema para Grupos de Atividades Finalizadas
 const GruposDeAtividadesFinalizadasSchema = new mongoose.Schema({
     grupoAtividadesId: { type: mongoose.Schema.Types.ObjectId, ref: 'GrupoAtividades', required: true },
-    atividade_id: { type: mongoose.Schema.Types.ObjectId,ref: 'Atividades', required: true },
+    atividade_id: { type: mongoose.Schema.Types.ObjectId,ref: 'Atividades', required: false },
     dataInicio: { type: Date, required: true },
     dataFinalizada: { type: Date, required: true },
     respostasFinais: [
@@ -126,10 +128,10 @@ const UserSchema = new mongoose.Schema({
     nivel: { type: Number, required: false },
     erros: {
         socializacao: [],
-        motor: [],
-        linguagem: [],
         cognicao: [],
+        linguagem: [],
         autoCuidado: [],
+        motor: [],
     },
     nome: { type: String, required: true },
     email: { type: String, required: true },

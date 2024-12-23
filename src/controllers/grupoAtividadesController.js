@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { GrupoAtividades, User, Atividades, Exercicios  } = require('../models/User');
+const { GrupoAtividades, User, Atividades, GruposDeAtividadesFinalizadas   } = require('../models/User');
 
 // Get GrupoAtividades by ID
 const getGrupoAtividades = async (req, res) => {
@@ -242,7 +242,150 @@ const filterGrupoAtividadesByNivel = async (req, res) => {
     }
 };
 
+const createGrupoAtividadesAuto = async (req, res) => {
+    try {
+        console.log('Início da execução.');
 
+        // Pega o ID do criador a partir do token de autenticação
+        const criadorId = req.user?._id;
+        if (!criadorId) {
+            throw new Error('ID do criador não encontrado no token.');
+        }
+        console.log(`ID do criador recebido: ${criadorId}`);
+
+        // Recupera o criador do banco de dados
+        const criador = await User.findById(criadorId, '-senha');
+        if (!criador) {
+            throw new Error('Criador não encontrado no banco de dados.');
+        }
+        console.log(`Criador encontrado: ${criador.nome}`);
+
+        // Extrair as categorias de erros do usuário
+        const categorias = Object.keys(criador.erros || {});
+        if (!categorias || categorias.length === 0) {
+            throw new Error('Nenhuma categoria encontrada no campo "erros" do usuário.');
+        }
+        console.log(`Categorias encontradas: ${categorias}`);
+
+        // Selecionar atividades baseadas nos marcos das categorias
+        const savedAtividades = [];
+        const criadorContagem = {};
+
+        for (const categoria of categorias) {
+            console.log(`Processando categoria: ${categoria}`);
+
+            // Recuperar os marcos específicos para esta categoria
+            const marcos = criador.erros[categoria];
+            for (const marco of marcos) {
+                // Busca as atividades disponíveis no banco com base nos marcos
+                const atividadesDisponiveis = await Atividades.find({ marco });
+                if (!atividadesDisponiveis || atividadesDisponiveis.length === 0) {
+                    console.log(`Nenhuma atividade disponível para o marco: ${marco}`);
+                    continue;
+                }
+
+                const randomIndex = Math.floor(Math.random() * atividadesDisponiveis.length);
+                const atividadeSelecionada = atividadesDisponiveis[randomIndex];
+
+                if (!atividadeSelecionada) {
+                    console.log(`Nenhuma atividade foi selecionada para o marco: ${marco}`);
+                    continue;
+                }
+
+                // Verifica se o usuário já completou a atividade
+                const atividadeJaFeita = await GruposDeAtividadesFinalizadas.findOne({
+                    atividade_id: atividadeSelecionada._id,
+                    idDoPaciente: criadorId
+                });
+                if (!atividadeJaFeita) {
+                    savedAtividades.push(atividadeSelecionada);
+                    console.log(`Atividade adicionada ao grupo: ${atividadeSelecionada.nomdeDaAtividade}`);
+
+                    // Contagem de criadores de atividades para imagem
+                    const criadorAtividadeId = atividadeSelecionada.criador.id;
+                    criadorContagem[criadorAtividadeId] = (criadorContagem[criadorAtividadeId] || 0) + 1;
+                }
+
+                // Parar se já temos 5 atividades
+                if (savedAtividades.length >= 5) {
+                    console.log(`Já existem 5 atividades no grupo. Encerrando seleção.`);
+                    break;
+                }
+            }
+
+            if (savedAtividades.length >= 5) {
+                break;
+            }
+        }
+
+        // Garante que o grupo tenha atividades suficientes
+        if (savedAtividades.length < 5) {
+            throw new Error('Atividades suficientes para completar o grupo não foram encontradas.');
+        }
+
+        // Determina os domínios do grupo e calcula pontuação total
+        const dominioSet = new Set();
+        let pontuacaoTotalDoGrupo = 0;
+        savedAtividades.forEach(a => {
+            if (a.dominio) (a.dominio || []).forEach(d => dominioSet.add(d));
+            pontuacaoTotalDoGrupo += a.exercicios.reduce((total, exercicio) => total + exercicio.pontuacao, 0);
+        });
+        const dominio = Array.from(dominioSet);
+        console.log(`Domínios adicionados: ${dominio}`);
+        console.log(`Pontuação total do grupo: ${pontuacaoTotalDoGrupo}`);
+
+        // Calcula o nome do grupo com base no número de grupos finalizados
+        const numGruposFinalizados = await GruposDeAtividadesFinalizadas.countDocuments({ idDoPaciente: criadorId });
+        const nomeGrupo = `Grupo ${numGruposFinalizados + 1} de ${criador.nome}`;
+        console.log(`Número de grupos finalizados: ${numGruposFinalizados}`);
+        console.log(`Nome do grupo: ${nomeGrupo}`);
+
+        // Nivel da atividade baseado no nível do usuário
+        const nivelDaAtividade = criador.nivel;
+
+        // Descrição fixa
+        const descricao = `Este grupo foi gerado dinamicamente para atender todas as necessidades do usuário ${criador.nome}. Para um plano de atendimento mais especifico, entre em contato com nossos profissionais.`;
+
+        // Determina a imagem baseado no usuário com mais atividades
+        let imagem = '';
+        const usuarioComMaisAtividades = Object.keys(criadorContagem).reduce((a, b) => criadorContagem[a] > criadorContagem[b] ? a : b, '');
+        const usuarioComMaisAtividadesObj = await User.findById(usuarioComMaisAtividades);
+        if (usuarioComMaisAtividadesObj && usuarioComMaisAtividadesObj.foto) {
+            imagem = usuarioComMaisAtividadesObj.foto;
+        }
+
+        if (!imagem) {
+            throw new Error('Nenhuma imagem foi selecionada para o grupo.');
+        }
+
+        console.log(`Imagem do grupo selecionada: ${imagem}`);
+
+        // Identificador único para o grupo
+        const identificador = `${numGruposFinalizados + 1}_${criadorId}`;
+
+        // Cria o objeto do grupo e salva no banco de dados
+        const grupoAtividades = new GrupoAtividades({
+            dataCriacao: Date.now(),
+            nomeGrupo,
+            nivelDaAtividade,
+            descricao,
+            criador: { id: criadorId, nome: criador.nome },
+            dominio,
+            atividades: savedAtividades,
+            pontuacaoTotalDoGrupo,
+            identificador,
+            imagem
+        });
+
+        await grupoAtividades.save();
+        console.log(`Grupo criado com sucesso: ${grupoAtividades._id}`);
+
+        res.status(201).json({ msg: 'Grupo de Atividades criado com sucesso!', grupo: grupoAtividades });
+    } catch (error) {
+        console.error(`Erro ao criar grupo de atividades: ${error.message}`);
+        res.status(500).json({ msg: 'Erro ao criar Grupo de Atividades.', error: error.message });
+    }
+};
 
 
 module.exports = {
@@ -252,5 +395,6 @@ module.exports = {
     deleteGrupoAtividades,
     filterGrupoAtividades,
     addExercicioToAtividade,
-    filterGrupoAtividadesByNivel
+    filterGrupoAtividadesByNivel,
+    createGrupoAtividadesAuto
 };

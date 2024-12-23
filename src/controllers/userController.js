@@ -10,13 +10,15 @@ const getAllUser = async (req, res) => {
 
 const getAllUserAtivos = async (req, res) => {
     try {
-        const users = await User.find({ ativo: true }, '-senha');
-        res.status(200).json({ users });
+      // Buscar os usuários ativos e ordenar pela data de criação em ordem decrescente
+      const users = await User.find({ ativo: true }, '-senha').sort({ _id: -1 });
+      res.status(200).json({ users });
     } catch (error) {
-        console.error("Erro ao buscar usuários:", error);
-        res.status(500).json({ error: 'Erro ao buscar usuários' });
+      console.error("Erro ao buscar usuários:", error);
+      res.status(500).json({ error: 'Erro ao buscar usuários' });
     }
-};
+  };
+  
 
 
 const getUser = async (req, res) => {
@@ -29,11 +31,11 @@ const getUser = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-    const { email, nome, foto, telefone, dataDeNascimento, senha, confirmarSenha, tipoDeConta, profissional, moeda, validade, ativo } = req.body;
-
+    const { email, nome, foto, telefone, dataDeNascimento, senha, confirmarSenha, tipoDeConta, moeda, ativo } = req.body;
+  
     // Log do payload recebido
     console.log('Payload recebido:', req.body);
-
+  
     // Verificar campos obrigatórios
     const missingFields = [];
     if (!email) missingFields.push('email');
@@ -43,58 +45,77 @@ const createUser = async (req, res) => {
     if (!senha) missingFields.push('senha');
     if (senha !== confirmarSenha) missingFields.push('confirmarSenha (senhas não conferem)');
     if (!tipoDeConta) missingFields.push('tipoDeConta');
-    if (!profissional) missingFields.push('profissional');
     if (!moeda) missingFields.push('moeda');
-    if (!validade) missingFields.push('validade');    
     if (!ativo) missingFields.push('ativo');
-
+  
     if (missingFields.length > 0) {
-        console.log('Campos obrigatórios faltando:', missingFields.join(', '));
-        return res.status(422).json({ message: `Campos obrigatórios faltando: ${missingFields.join(', ')}` });
+      console.log('Campos obrigatórios faltando:', missingFields.join(', '));
+      return res.status(422).json({ message: `Campos obrigatórios faltando: ${missingFields.join(', ')}` });
     }
-
+  
     const userExists = await User.findOne({ email });
     if (userExists) {
-        return res.status(422).json({ message: 'Email já cadastrado!' });
+      return res.status(422).json({ message: 'Email já cadastrado!' });
     }
-
+  
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(senha, salt);
-    
-    const user = new User({ 
-        email, 
-        nome, 
-        telefone, 
-        dataDeNascimento, 
-        senha: passwordHash, 
-        tipoDeConta, 
-        profissional,
-        moeda, 
-        validade, 
-        foto,
-        ativo: true 
+  
+    // Definir validade para Admin ou Profissional
+    const validade = (tipoDeConta === 'Admin' || tipoDeConta === 'Profissional') ? '31/12/2999' : req.body.validade;
+  
+    // Definir grupo baseado no tipo de conta
+    const grupo = (tipoDeConta === 'Admin') ? ['Admin'] : (tipoDeConta === 'Profissional') ? ['Profissional'] : [];
+  
+    // Definir objeto profissional fixo para Profissionais
+    const profissional = (tipoDeConta === 'Profissional') ? [{
+        idDoProfissional: '672243e4effa46003373d4f4',
+        nome: 'Stimular'
+      }] : [];
+  
+    const user = new User({
+      email,
+      nome,
+      telefone,
+      dataDeNascimento,
+      senha: passwordHash,
+      tipoDeConta,
+      profissional,
+      moeda,
+      validade,
+      grupo,
+      foto,
+      ativo: true
     });
-
+  
     try {
-        await user.save();
-        res.status(201).json({ msg: 'Usuário criado com sucesso' });
+      await user.save();
+      res.status(201).json({ msg: 'Usuário criado com sucesso' });
     } catch (error) {
-        console.log('Erro ao criar usuário:', error);
-        res.status(500).json({ msg: 'Erro ao criar usuário' });
+      console.log('Erro ao criar usuário:', error);
+      res.status(500).json({ msg: 'Erro ao criar usuário' });
     }
-};
+  };
+  
 
     
-const updateUser = async (req, res) => {
+  const updateUser = async (req, res) => {
     const id = req.params.id;
 
     try {
-        console.log('Dados recebidos para atualização:', req.body); // Loga os dados recebidos
-        const updatedUser = await User.findByIdAndUpdate(id, req.body, { new: true });
+        console.log('Dados recebidos para atualização:', req.body); // Logar os dados recebidos
 
-        if (!updatedUser) {
+        // Consultar o usuário atual
+        const user = await User.findById(id);
+
+        if (!user) {
             return res.status(404).json({ msg: 'Usuário não encontrado' });
         }
+
+        // Preservar o campo 'ativo' a menos que seja explicitamente alterado
+        const updates = { ...req.body, ativo: req.body.ativo !== undefined ? req.body.ativo : user.ativo };
+
+        const updatedUser = await User.findByIdAndUpdate(id, updates, { new: true });
 
         res.status(200).json({ msg: 'Usuário atualizado com sucesso', user: updatedUser });
     } catch (err) {
@@ -102,6 +123,7 @@ const updateUser = async (req, res) => {
         res.status(500).json({ msg: 'Erro ao atualizar usuário' });
     }
 };
+
 
 
 const deleteUser = async (req, res) => {
