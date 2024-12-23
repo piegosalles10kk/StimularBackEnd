@@ -21,12 +21,19 @@ const ExerciciosSchema = new mongoose.Schema({
 
 // Esquema para Atividades
 const AtividadesSchema = new mongoose.Schema({
-    nomdeDaAtividade: { type: String, required: true },
-    fotoDaAtividade: { type: String, required: false },
-    tipoDeAtividade: { type: String, required: true },
-    exercicios: [ExerciciosSchema],
-    pontuacaoTotalDoGrupo: { type: Number, required: true, default: 0 }
-});
+    criador: {
+            id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+            nome: { type: String, required: true }
+        },
+        idade: { type: Number, required: true },
+        marco: { type: String, required: true },
+        nomdeDaAtividade: { type: String, required: true },
+        descicaoDaAtividade: { type: String, required: false },
+        fotoDaAtividade: { type: String, required: false },
+        tipoDeAtividade: { type: String, required: true },
+        exercicios: [ExerciciosSchema],
+        pontuacaoTotalDoGrupo: { type: Number, required: true, default: 0 }
+    });
 
 // Esquema para Grupo de Atividades
 const GrupoAtividadesSchema = new mongoose.Schema({
@@ -63,6 +70,7 @@ const GruposDeAtividadesEmAndamentoSchema = new mongoose.Schema({
 // Esquema para Grupos de Atividades Finalizadas
 const GruposDeAtividadesFinalizadasSchema = new mongoose.Schema({
     grupoAtividadesId: { type: mongoose.Schema.Types.ObjectId, ref: 'GrupoAtividades', required: true },
+    atividade_id: { type: mongoose.Schema.Types.ObjectId,ref: 'Atividades', required: true },
     dataInicio: { type: Date, required: true },
     dataFinalizada: { type: Date, required: true },
     respostasFinais: [
@@ -116,6 +124,13 @@ const UserSchema = new mongoose.Schema({
         dataDeCriacao : { type: String, required: false }
      },
     nivel: { type: Number, required: false },
+    erros: {
+        socializacao: [],
+        motor: [],
+        linguagem: [],
+        cognicao: [],
+        autoCuidado: [],
+    },
     nome: { type: String, required: true },
     email: { type: String, required: true },
     telefone: { type: String, required: true },
