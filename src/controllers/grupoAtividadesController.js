@@ -260,6 +260,21 @@ const createGrupoAtividadesAuto = async (req, res) => {
         }
         console.log(`Criador encontrado: ${criador.nome}`);
 
+        // Verifica se o usuário já possui um grupo criado
+        const grupoExistente = await GrupoAtividades.findOne({ 'criador.id': criadorId });
+        
+        // Se um grupo já existir, verifica a data
+        if (grupoExistente) {
+            // Se a data do grupo existente for igual ou posterior a hoje, não permite nova criação
+            if (grupoExistente.dataCriacao >= new Date(new Date().setHours(0, 0, 0, 0))) {
+                return res.status(400).json({ msg: 'Você já possui um grupo criado hoje. Aguarde antes de criar um novo grupo.' });
+            } else {
+                // Caso contrário, exclui o grupo existente
+                await GrupoAtividades.deleteOne({ _id: grupoExistente._id });
+                console.log(`Grupo existente excluído: ${grupoExistente._id}`);
+            }
+        }
+
         // Extrair as categorias de erros do usuário
         const categorias = Object.keys(criador.erros || {});
         if (!categorias || categorias.length === 0) {
@@ -326,17 +341,19 @@ const createGrupoAtividadesAuto = async (req, res) => {
         // Determina os domínios do grupo e calcula pontuação total
         const dominioSet = new Set();
         let pontuacaoTotalDoGrupo = 0;
+
         savedAtividades.forEach(a => {
             if (a.dominio) (a.dominio || []).forEach(d => dominioSet.add(d));
             pontuacaoTotalDoGrupo += a.exercicios.reduce((total, exercicio) => total + exercicio.pontuacao, 0);
         });
+
         const dominio = Array.from(dominioSet);
         console.log(`Domínios adicionados: ${dominio}`);
         console.log(`Pontuação total do grupo: ${pontuacaoTotalDoGrupo}`);
 
         // Calcula o nome do grupo com base no número de grupos finalizados
         const numGruposFinalizados = await GruposDeAtividadesFinalizadas.countDocuments({ idDoPaciente: criadorId });
-        const nomeGrupo = `Grupo ${numGruposFinalizados + 1} de ${criador.nome}`;
+        const nomeGrupo = `Treinamento de ${criador.nome}`;
         console.log(`Número de grupos finalizados: ${numGruposFinalizados}`);
         console.log(`Nome do grupo: ${nomeGrupo}`);
 
@@ -381,9 +398,34 @@ const createGrupoAtividadesAuto = async (req, res) => {
         console.log(`Grupo criado com sucesso: ${grupoAtividades._id}`);
 
         res.status(201).json({ msg: 'Grupo de Atividades criado com sucesso!', grupo: grupoAtividades });
+
     } catch (error) {
         console.error(`Erro ao criar grupo de atividades: ${error.message}`);
         res.status(500).json({ msg: 'Erro ao criar Grupo de Atividades.', error: error.message });
+    }
+};
+
+const getGrupoAtividadesAuto = async (req, res) => {
+    try {
+        // Pega o ID do criador a partir do token de autenticação
+        const criadorId = req.user?._id; // Supondo que você armazena o ID do usuário no token
+        if (!criadorId) {
+            return res.status(400).json({ msg: 'ID do criador não encontrado.' });
+        }
+
+        // Busca todos os grupos de atividades que o criador criou
+        const gruposAtividades = await GrupoAtividades.find({ 'criador.id': criadorId }).populate('criador atividades');
+
+        // Verifica se foram encontrados grupos
+        if (gruposAtividades.length === 0) {
+            return res.status(404).json({ msg: 'Nenhum grupo de atividades encontrado.' });
+        }
+
+        // Retorna os grupos encontrados
+        res.status(200).json({ gruposAtividades });
+    } catch (error) {
+        console.error('Erro ao obter grupos de atividades:', error);
+        res.status(500).json({ msg: 'Erro ao obter grupos de atividades.' });
     }
 };
 
@@ -396,5 +438,6 @@ module.exports = {
     filterGrupoAtividades,
     addExercicioToAtividade,
     filterGrupoAtividadesByNivel,
-    createGrupoAtividadesAuto
+    createGrupoAtividadesAuto,
+    getGrupoAtividadesAuto
 };
