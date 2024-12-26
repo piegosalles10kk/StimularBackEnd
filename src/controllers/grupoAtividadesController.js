@@ -409,7 +409,6 @@ const getGrupoAtividadesAuto = async (req, res) => {
     try {
         // Pega o ID do criador a partir do token de autenticação
         const criadorId = req.user?._id; // Supondo que você armazena o ID do usuário no token
-
         if (!criadorId) {
             return res.status(400).json({ msg: 'ID do criador não encontrado.' });
         }
@@ -422,13 +421,14 @@ const getGrupoAtividadesAuto = async (req, res) => {
             return res.status(404).json({ msg: 'Nenhum grupo de atividades encontrado.' });
         }
 
-        // Retorna apenas os grupos encontrados
-        res.status(200).json(gruposAtividades); // Removendo a chave `gruposAtividades`
+        // Retorna os grupos encontrados
+        res.status(200).json({ gruposAtividades });
     } catch (error) {
         console.error('Erro ao obter grupos de atividades:', error);
         res.status(500).json({ msg: 'Erro ao obter grupos de atividades.' });
     }
 };
+
 
 module.exports = {
     getGrupoAtividades,
