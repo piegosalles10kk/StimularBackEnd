@@ -387,7 +387,7 @@ const createGrupoAtividadesAuto = async (req, res) => {
             nivelDaAtividade,
             descricao,
             criador: { id: criadorId, nome: criador.nome },
-            dominio,
+            dominio: ['TEA'],
             atividades: savedAtividades,
             pontuacaoTotalDoGrupo,
             identificador,
