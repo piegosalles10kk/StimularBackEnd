@@ -361,7 +361,7 @@ const createGrupoAtividadesAuto = async (req, res) => {
         const nivelDaAtividade = criador.nivel;
 
         // Descrição fixa
-        const descricao = `Este grupo foi gerado dinamicamente para atender todas as necessidades do usuário ${criador.nome}. Para um plano de atendimento mais especifico, entre em contato com nossos profissionais.`;
+        const descricao = `Plano de treinamento gerado diariamente para atender exclusivamente ${criador.nome}. Para acompanhamento profissional, entre em contato com nossos profissionais.`;
 
         // Determina a imagem baseado no usuário com mais atividades
         let imagem = '';
