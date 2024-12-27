@@ -402,22 +402,36 @@ const createGrupoAtividadesAuto = async (req, res) => {
 
 const getGrupoAtividadesAuto = async (req, res) => {
     try {
-        // Pega o ID do criador a partir do token de autenticação
-        const criadorId = req.user?._id; // Supondo que você armazena o ID do usuário no token
+        const criadorId = req.user?._id; // Obtendo o ID do criador a partir do token
+
         if (!criadorId) {
             return res.status(400).json({ msg: 'ID do criador não encontrado.' });
         }
 
         // Busca todos os grupos de atividades que o criador criou
-        const gruposAtividades = await GrupoAtividades.find({ 'criador.id': criadorId }).populate('criador atividades');
+        const gruposAtividades = await GrupoAtividades.find({ 'criador.id': criadorId })
+            .populate('criador atividades');
 
         // Verifica se foram encontrados grupos
         if (gruposAtividades.length === 0) {
             return res.status(404).json({ msg: 'Nenhum grupo de atividades encontrado.' });
         }
 
+        // Obtém os IDs das atividades finalizadas do usuário (considerando que cada atividade finalizada contém um grupo que já foi finalizado)
+        const usuario = await User.findById(criadorId).populate('gruposDeAtividadesFinalizadas');
+        const idsAtividadesFinalizadas = usuario.gruposDeAtividadesFinalizadas.map(atividade => atividade.grupoAtividadesId.toString());
+
+        // Filtra as atividades que não foram finalizadas
+        const gruposAtividadesFiltrados = gruposAtividades.map(grupo => {
+            grupo.atividades = grupo.atividades.filter(atividade => 
+                !idsAtividadesFinalizadas.includes(atividade._id.toString()) // Verifica se o ID da atividade não está nos finalizados
+            );
+            return grupo;
+        });
+
         // Retorna os grupos encontrados
-        res.status(200).json({ gruposAtividades });
+        res.status(200).json({ gruposAtividades: gruposAtividadesFiltrados });
+
     } catch (error) {
         console.error('Erro ao obter grupos de atividades:', error);
         res.status(500).json({ msg: 'Erro ao obter grupos de atividades.' });
