@@ -32,9 +32,13 @@ const createAtividadeFinalizada = async (req, res) => {
 
         // Prepare as respostas finais
         const respostasFinais = atividadeEmAndamento.respostas.map(resposta => ({
+            atividade_id: resposta.atividade_id,
             exercicioId: resposta.exercicioId,
             isCorreta: resposta.isCorreta,
-            pontuacao: resposta.pontuacao // Certifique-se de que a pontuação é sempre preenchida
+            pontuacao: resposta.pontuacao,
+            pontuacaoPossivel: resposta.pontuacaoPossivel,
+            porcentagem: resposta.porcentagem 
+
         }));
 
         // Calcule a pontuação final considerando apenas as respostas corretas
