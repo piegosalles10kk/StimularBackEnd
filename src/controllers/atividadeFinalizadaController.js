@@ -37,7 +37,8 @@ const createAtividadeFinalizada = async (req, res) => {
             isCorreta: resposta.isCorreta,
             pontuacao: resposta.pontuacao,
             pontuacaoPossivel: resposta.pontuacaoPossivel,
-            porcentagem: resposta.porcentagem 
+            porcentagem: resposta.porcentagem,
+            tipoAtividade: resposta.tipoAtividade
 
         }));
 

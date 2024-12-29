@@ -170,13 +170,13 @@ const updateAtividadeEmAndamento = async (req, res) => {
 const updateRespostaAtividadeEmAndamento = async (req, res) => {
     const { grupoId } = req.params; // ID do grupo de atividades em andamento
 
-    const { atividade_id, exercicioId, alternativaId, isCorreta, pontuacao, pontuacaoPossivel } = req.body;
+    const { atividade_id, exercicioId, alternativaId, isCorreta, pontuacao, pontuacaoPossivel, tipoAtividade } = req.body;
 
     // Log para verificar o conteúdo de req.body
     console.log("Dados recebidos no corpo da requisição:", req.body);
 
     // Adicione uma verificação para garantir que os valores não são undefined
-    if (!atividade_id || !exercicioId || isCorreta === undefined || pontuacao === undefined || pontuacaoPossivel === undefined) {
+    if (!atividade_id || !exercicioId || isCorreta === undefined || pontuacao === undefined || pontuacaoPossivel === undefined || tipoAtividade === undefined) {
         return res.status(400).json({ message: 'Dados incompletos ou inválidos.' });
     }
 
@@ -213,6 +213,8 @@ const updateRespostaAtividadeEmAndamento = async (req, res) => {
                 pontuacaoPossivel: pontuacaoPossivel,
                 porcentagem: (pontuacao / pontuacaoPossivel) * 100,
                 alternativaId: alternativaId,
+                tipoAtividade: tipoAtividade
+                
             };
 
             grupoAtividades.respostas.push(novaResposta); // Adiciona nova resposta
