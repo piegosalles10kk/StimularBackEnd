@@ -32,6 +32,7 @@ const createAtividadeEmAndamento = async (req, res) => {
                     atividade_id: new mongoose.Types.ObjectId(resposta.atividade_id), // ID da atividade
                     isCorreta: resposta.isCorreta,
                     pontuacao: resposta.pontuacao,
+                    pontuacaoPossivel: resposta.pontuacaoPossivel
                 };
             });
         }
@@ -169,13 +170,13 @@ const updateAtividadeEmAndamento = async (req, res) => {
 const updateRespostaAtividadeEmAndamento = async (req, res) => {
     const { grupoId } = req.params; // ID do grupo de atividades em andamento
 
-    const { atividade_id, exercicioId, alternativaId, isCorreta, pontuacao } = req.body;
+    const { atividade_id, exercicioId, alternativaId, isCorreta, pontuacao, pontuacaoPossivel } = req.body;
 
     // Log para verificar o conteúdo de req.body
     console.log("Dados recebidos no corpo da requisição:", req.body);
 
     // Adicione uma verificação para garantir que os valores não são undefined
-    if (!atividade_id || !exercicioId || isCorreta === undefined || pontuacao === undefined) {
+    if (!atividade_id || !exercicioId || isCorreta === undefined || pontuacao === undefined || pontuacaoPossivel === undefined) {
         return res.status(400).json({ message: 'Dados incompletos ou inválidos.' });
     }
 
@@ -198,6 +199,7 @@ const updateRespostaAtividadeEmAndamento = async (req, res) => {
             // Atualiza a resposta existente
             atividadeEmAndamento.isCorreta = isCorreta;
             atividadeEmAndamento.pontuacao = pontuacao;
+            atividadeEmAndamento.pontuacaoPossivel = pontuacaoPossivel;
             atividadeEmAndamento.alternativaId = alternativaId; // Atualiza alternativaId
             console.log(`Resposta atualizada para exercício_id: ${exercicioId}, atividade_id: ${atividade_id}`);
         } else {
@@ -207,6 +209,7 @@ const updateRespostaAtividadeEmAndamento = async (req, res) => {
                 atividade_id: atividade_id,
                 isCorreta: isCorreta,
                 pontuacao: pontuacao,
+                pontuacaoPossivel: pontuacaoPossivel,
                 alternativaId: alternativaId,
             };
 
