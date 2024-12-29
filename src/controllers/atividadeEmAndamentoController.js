@@ -200,6 +200,7 @@ const updateRespostaAtividadeEmAndamento = async (req, res) => {
             atividadeEmAndamento.isCorreta = isCorreta;
             atividadeEmAndamento.pontuacao = pontuacao;
             atividadeEmAndamento.pontuacaoPossivel = pontuacaoPossivel;
+            atividadeEmAndamento.porcentagem = (pontuacao / pontuacaoPossivel) * 100;
             atividadeEmAndamento.alternativaId = alternativaId; // Atualiza alternativaId
             console.log(`Resposta atualizada para exercício_id: ${exercicioId}, atividade_id: ${atividade_id}`);
         } else {
@@ -210,6 +211,7 @@ const updateRespostaAtividadeEmAndamento = async (req, res) => {
                 isCorreta: isCorreta,
                 pontuacao: pontuacao,
                 pontuacaoPossivel: pontuacaoPossivel,
+                porcentagem: (pontuacao / pontuacaoPossivel) * 100,
                 alternativaId: alternativaId,
             };
 

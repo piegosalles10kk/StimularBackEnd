@@ -59,7 +59,8 @@ const respostasSalvasSchema = new mongoose.Schema({
     atividade_id: { type: mongoose.Schema.Types.ObjectId, required: true },
     isCorreta: { type: Boolean, required: true },
     pontuacao: { type: Number, required: true },
-    pontuacaoPossivel: { type: Number, required: true }
+    pontuacaoPossivel: { type: Number, required: true },
+    porcentagem: { type: Number, required: true }
 });
 
 // Esquema para Grupos de Atividades Em Andamento
