@@ -32,7 +32,7 @@ const createAtividadeFinalizada = async (req, res) => {
 
         // Prepare as respostas finais
         const respostasFinais = atividadeEmAndamento.respostas.map(resposta => ({
-            atividade_id: resposta.atividade_id,
+            atividade_id: resposta.porcentage < 80 ? `${resposta.atividade_id} Reprovado` : resposta.atividade_id,
             exercicioId: resposta.exercicioId,
             isCorreta: resposta.isCorreta,
             pontuacao: resposta.pontuacao,
