@@ -18,8 +18,42 @@ const getAllUserAtivos = async (req, res) => {
       res.status(500).json({ error: 'Erro ao buscar usuários' });
     }
   };
-  
 
+  const getAllUserAtivosPacientes = async (req, res) => {
+    try {
+        // Recupera o ID e o nome do criador
+        const criadorId = req.user?._id;
+        if (!criadorId) {
+            return res.status(400).json({ msg: 'ID do criador não encontrado no token.' });
+        }
+
+        const criador = await User.findById(criadorId, '-senha');
+        if (!criador) {
+            return res.status(404).json({ msg: 'Criador não encontrado no banco de dados.' });
+        }
+
+        console.log(`ID do criador recebido: ${criadorId}`);
+        console.log(`Criador encontrado: ${criador.nome}`);
+
+        // Buscar os usuários ativos do tipo "Paciente"
+        const users = await User.find({ ativo: true, tipoDeConta: 'Paciente' }, '-senha');
+
+        // Filtra os usuários para encontrar aqueles que têm o criador como profissional
+        const filteredUsers = users.filter(user => 
+            user.profissional.some(prof => 
+                prof.idDoProfissional.toString() === criadorId.toString() && prof.nome === criador.nome
+            )
+        );
+
+        res.status(200).json({ users: filteredUsers });
+        console.log(`Usuários encontrados: ${filteredUsers.length}`);
+        
+
+    } catch (error) {
+        console.error("Erro ao buscar usuários:", error);
+        res.status(500).json({ error: 'Erro ao buscar usuários' });
+    }
+};
 
 const getUser = async (req, res) => {
     const id = req.params.id;
@@ -319,4 +353,4 @@ const AtivoOuInativo = async (req, res) => {
 
 
 
-module.exports = { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser, updateUserMoeda, updatePassword, updatePasswordRecovery, getAllUserAtivos, AtivoOuInativo };
+module.exports = { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser, updateUserMoeda, updatePassword, updatePasswordRecovery, getAllUserAtivos, AtivoOuInativo, getAllUserAtivosPacientes };
