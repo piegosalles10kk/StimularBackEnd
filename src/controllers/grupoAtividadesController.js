@@ -256,7 +256,14 @@ const createGrupoAtividadesAuto = async (req, res) => {
         if (!criador) {
             throw new Error('Criador não encontrado no banco de dados.');
         }
-        console.log(`Criador encontrado: ${criador.nome}`);
+        console.log(`Criador encontrado: ${criador.nome} tipo de conta: ${criador.tipoDeConta}`);
+
+        if(criador.tipoDeConta !== 'Paciente') {
+            res.status(500).json({ msg: 'Apenas pacientes podem criar atividades.' });
+
+            return
+
+        }else{
 
         const grupoExistente = await GrupoAtividades.findOne({ 'criador.id': criadorId });
 
@@ -394,10 +401,13 @@ const createGrupoAtividadesAuto = async (req, res) => {
 
         res.status(201).json({ msg: 'Grupo de Atividades criado com sucesso!', grupo: grupoAtividades });
 
+    }
+
     } catch (error) {
         console.error(`Erro ao criar grupo de atividades: ${error.message}`);
         res.status(500).json({ msg: 'Erro ao criar Grupo de Atividades.', error: error.message });
     }
+    
 };
 
 const getGrupoAtividadesAuto = async (req, res) => {
