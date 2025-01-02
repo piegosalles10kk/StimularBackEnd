@@ -103,7 +103,8 @@ const DiagnosticoSchema = new mongoose.Schema({
 const DescricaoSchema = new mongoose.Schema({
     autor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     nomeAutor: { type: String, required: true }, // Adicionado o nome do autor
-    comentario: { type: String, required: true }
+    comentario: { type: String, required: true },
+    dataCriacao: { type: Date, required: true }
 });
 // Esquema para Profissional
 const ProfissionalSchema = new mongoose.Schema({
