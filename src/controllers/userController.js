@@ -77,7 +77,7 @@ const createUser = async (req, res) => {
     if (!telefone) missingFields.push('telefone');
     if (!dataDeNascimento) missingFields.push('dataDeNascimento');
     if (!senha) missingFields.push('senha');
-    if (senha !== confirmarSenha) missingFields.push('confirmarSenha (senhas não conferem)');
+    if (senha !== confirmarSenha) missingFields.push('Senhas não conferem');
     if (!tipoDeConta) missingFields.push('tipoDeConta');
     if (!moeda) missingFields.push('moeda');
     if (!ativo) missingFields.push('ativo');
@@ -350,7 +350,28 @@ const AtivoOuInativo = async (req, res) => {
     }
 };
 
+const verificarEmailCadastrado = async (req, res) => {
+    const { email } = req.params;
+
+    try {
+        // Encontrar o usuário pelo email
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ error: 'Usuário não encontrado' });
+        }
+
+        // Verificar se o email já está cadastrado
+        return res.status(200).json({ message: 'Email já cadastrado' });
+    } catch (error) {
+        console.error("Erro ao verificar o email do usuário:", error);
+        res.status(500).json({ error: 'Erro ao verificar o email do usuário' });
+    }
+};
 
 
 
-module.exports = { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser, updateUserMoeda, updatePassword, updatePasswordRecovery, getAllUserAtivos, AtivoOuInativo, getAllUserAtivosPacientes };
+
+
+
+module.exports = { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser, updateUserMoeda, updatePassword, updatePasswordRecovery, getAllUserAtivos, AtivoOuInativo, getAllUserAtivosPacientes, verificarEmailCadastrado };
