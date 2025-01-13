@@ -353,6 +353,14 @@ const AtivoOuInativo = async (req, res) => {
 const verificarEmailCadastrado = async (req, res) => {
     const { email } = req.params;
 
+    // Expressão regular para validar o formato do email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // Verificar se o formato do email é válido
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: 'Formato de email inválido' });
+    }
+
     try {
         // Encontrar o usuário pelo email
         const user = await User.findOne({ email });
@@ -368,6 +376,8 @@ const verificarEmailCadastrado = async (req, res) => {
         res.status(500).json({ error: 'Erro ao verificar o email do usuário' });
     }
 };
+
+
 
 
 
