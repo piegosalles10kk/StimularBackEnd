@@ -1,3 +1,5 @@
 {
-    "liveServer.settings.port": 5501
+    "liveServer.settings.port": 5501,
+    "appService.defaultWebAppToDeploy": "/subscriptions/eff045de-1dde-4c95-a253-f329fdb87c97/resourceGroups/stimularBackEnd_group/providers/Microsoft.Web/sites/stimularBackEnd",
+    "appService.deploySubpath": "."
 }

@@ -17,6 +17,8 @@ const { PORT } = require('./config');
 
 const app = express();
 
+const port = process.env.PORT || 3000;
+
 app.use(cors());
 
 // Config json response
@@ -41,4 +43,4 @@ connectDB();
 // Connect to Swagger
 setupSwagger(app);
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(port, () => console.log(`Server running on port ${port}`));
