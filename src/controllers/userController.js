@@ -151,7 +151,7 @@ const createUser = async (req, res) => {
 
         const updatedUser = await User.findByIdAndUpdate(id, updates, { new: true });
 
-        res.status(200).json({ msg: 'Usuário atualizado com sucesso', user: updatedUser });
+        res.status(200).json({ msg: 'Usuário atualizado com sucesso' });
     } catch (err) {
         console.log(err);
         res.status(500).json({ msg: 'Erro ao atualizar usuário' });
@@ -244,7 +244,7 @@ const updateUserMoeda = async (req, res) => {
             { new: true }
         );
 
-        res.status(200).json({ msg: 'Moeda do usuário atualizada com sucesso', user: updatedUser });
+        res.status(200).json({ msg: 'Moeda do usuário atualizada com sucesso' });
     } catch (err) {
         console.log('Erro ao atualizar moeda:', err);
         res.status(500).json({ msg: 'Erro ao atualizar moeda do usuário' });
