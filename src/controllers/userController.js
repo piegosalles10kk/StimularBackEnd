@@ -68,7 +68,7 @@ const createUser = async (req, res) => {
     const { email, nome, foto, telefone, dataDeNascimento, senha, confirmarSenha, tipoDeConta, moeda, ativo } = req.body;
   
     // Log do payload recebido
-    console.log('Payload recebido:', req.body);
+    //console.log('Payload recebido:', req.body);
   
     // Verificar campos obrigatórios
     const missingFields = [];
@@ -222,7 +222,7 @@ const updateUserMoeda = async (req, res) => {
     }
 
     try {
-        console.log('Dados recebidos para atualização do campo moeda:', req.body); // Loga os dados recebidos
+        //console.log('Dados recebidos para atualização do campo moeda:', req.body); // Loga os dados recebidos
 
         // Primeiro, busque o usuário atual para obter a moeda existente
         const user = await User.findById(id);
