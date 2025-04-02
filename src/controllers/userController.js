@@ -192,7 +192,7 @@ const loginUser = async (req, res) => {
 
     try {
         const secret = process.env.SECRET;
-        const token = jwt.sign({ id: user._id, tipoDeConta: user.tipoDeConta, nivel: user.nivel, grupo: user.grupo, ativo: user.ativo }, secret);
+        const token = jwt.sign({ id: user._id, tipoDeConta: user.tipoDeConta, nivel: user.nivel, grupo: user.grupo, ativo: user.ativo, validade: user.validade }, secret);
 
         // Inclua o ID do usuário na resposta
         res.status(200).json({
@@ -201,7 +201,9 @@ const loginUser = async (req, res) => {
             tipoDeConta: user.tipoDeConta,
             grupoDoUser: user.grupo,
             ativo: user.ativo,
-            id: user._id // Adicionando o ID do usuário aqui
+            id: user._id ,
+            validade: user.validade
+            // Adicionando o ID do usuário aqui
         });
     } catch (err) {
         console.log(err);
