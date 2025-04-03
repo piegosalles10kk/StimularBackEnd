@@ -12,21 +12,26 @@ const atividadeEmAndamentoRoutes = require('./src/routes/atividadeEmAndamentoRou
 const atividadeFinalizadaRoutes = require('./src/routes/atividadeFinalizadaRoutes');
 const uploadMidia = require('./src/routes/uploadMidiaRoutes');
 const sendEmailRoutes = require('./src/routes/sendEmailRoutes');
-const atividadesApp = require('./src/routes/atividadeAppRoutes');
+const atividadesAppRoutes = require('./src/routes/atividadeAppRoutes');
+const muralRoutes = require('./src/routes/muralRoutes');
 const { PORT } = require('./config');
 
 const app = express();
-
 const port = process.env.PORT || 3000;
 
 app.use(cors());
 
-// Config json response
+// Configuração para JSON e URL-encoded
 app.use(express.json({ limit: '100mb' })); 
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
-app.use(upload.single('file')); // Para analisar multipart/form-data
+app.use(upload.single('file')); // Para análise de multipart/form-data
 
-// Routes
+// Rota principal
+app.get('/', (req, res) => {
+    res.send('ApiStimularOn');
+});
+
+// Rotas da aplicação
 app.use(userRoutes);
 app.use(atividadeRoutes);
 app.use(exercicioRoutes);
@@ -35,12 +40,14 @@ app.use(atividadeEmAndamentoRoutes);
 app.use(atividadeFinalizadaRoutes);
 app.use(uploadMidia);
 app.use(sendEmailRoutes);
-app.use(atividadesApp);
+app.use(muralRoutes);
+app.use(atividadesAppRoutes);
 
-// Connect to MongoDB
+// Conexão ao banco de dados
 connectDB();
 
-// Connect to Swagger
+// Configuração do Swagger
 setupSwagger(app);
 
+// Inicialização do servidor
 app.listen(port, () => console.log(`Server running on port ${port}`));

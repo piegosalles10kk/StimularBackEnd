@@ -13,7 +13,7 @@ router.put('/auth/update-password-recovery', updatePasswordRecovery);
 
 router.put('/auth/update-password/:id', checkToken, updatePassword);
 
-router.get('/user', getAllUser);
+router.get('/user', checkToken, getAllUser);
 
 router.get('/user-ativos', checkToken, getAllUserAtivos);
 

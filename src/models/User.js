@@ -1,5 +1,17 @@
 const mongoose = require('mongoose');
 
+// Esquema para mural do app
+const MuralSchema = new mongoose.Schema({
+    autor: { type: String, required: true },
+    titulo: { type: String, required: true },
+    midia: {
+        tipoDeMidia: { type: String, required: false },
+        url: { type: String, required: false }
+    },
+    conteudo: { type: String, required: true },
+    dataCriacao: { type: String, required: true }
+});
+
 // Esquema para Alternativas
 const AlternativasSchema = new mongoose.Schema({
     alternativa: { type: String, required: true },
@@ -176,6 +188,7 @@ const Alternativas = mongoose.model('Alternativas', AlternativasSchema);
 const Conquistas = mongoose.model('Conquistas', ConquistasSchema);
 const Profissional = mongoose.model('Profissional', ProfissionalSchema);
 const Pacientes = mongoose.model('Pacientes', PacientesSchema);
+const Mural = mongoose.model('Mural', MuralSchema);
 
 // Exportação dos Modelos
 module.exports = {
@@ -188,5 +201,6 @@ module.exports = {
     Conquistas,
     Profissional,
     Pacientes,
-    Alternativas
+    Alternativas,
+    Mural
 };

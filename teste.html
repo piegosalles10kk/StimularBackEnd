@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Upload do Mural</title>
+</head>
+<body>
+    <h1>Teste de Upload do Mural</h1>
+    <form id="muralForm" enctype="multipart/form-data">
+        <label for="autor">Autor:</label>
+        <input type="text" id="autor" name="autor" required><br><br>
+
+        <label for="titulo">Título:</label>
+        <input type="text" id="titulo" name="titulo" required><br><br>
+
+        <label for="conteudo">Conteúdo:</label>
+        <textarea id="conteudo" name="conteudo" required></textarea><br><br>
+
+        <label for="file">Escolha uma mídia:</label>
+        <input type="file" id="file" name="file" required><br><br>
+
+        <button type="submit">Enviar Mural</button>
+    </form>
+
+    <h3>Resposta da API:</h3>
+    <pre id="response"></pre>
+
+    <script>
+        document.getElementById('muralForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const formData = new FormData();
+            formData.append('autor', document.getElementById('autor').value);
+            formData.append('titulo', document.getElementById('titulo').value);
+            formData.append('conteudo', document.getElementById('conteudo').value);
+            formData.append('file', document.getElementById('file').files[0]);
+
+            const responseElement = document.getElementById('response');
+
+            try {
+                const response = await fetch('http://localhost:3001/mural', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                responseElement.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                responseElement.textContent = 'Erro ao enviar mural: ' + error.message;
+            }
+        });
+    </script>
+</body>
+</html>
