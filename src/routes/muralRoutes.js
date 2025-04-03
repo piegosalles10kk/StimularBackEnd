@@ -3,7 +3,7 @@ const router = express.Router();
 const checkToken = require('../middleware/checkToken');
 const { uploadMural, verMural } = require('../controllers/muralController');
 
-router.post('/mural', checkToken, uploadMural);
+router.post('/mural', uploadMural);
 router.get('/mural', checkToken, verMural);
 
 

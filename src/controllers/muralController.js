@@ -3,13 +3,26 @@ const { uploadMidia } = require('./uploadMidiaController');
 
 const uploadMural = async (req, res) => {
     try {
-        const { autor, titulo, conteudo } = req.body;
+        const { titulo, conteudo } = req.body;
 
-        // Remover mural antigo antes de criar um novo
-        await Mural.deleteMany({ autor }); // Apaga qualquer mural com esse autor
+        // Remover TODOS os murais antes de criar um novo
+        await Mural.deleteMany({}); // Apaga qualquer mural existente
+
+        // Função para formatar a data para o titulo
+        const formatDateTituloMidia = () => {
+            const date = new Date();
+            const dia = String(date.getDate()).padStart(2, '0');
+            const mes = String(date.getMonth() + 1).padStart(2, '0');
+            const ano = date.getFullYear();
+            const horas = String(date.getHours()).padStart(2, '0');
+            const minutos = String(date.getMinutes()).padStart(2, '0');
+            const segundos = String(date.getSeconds()).padStart(2, '0'); // Agora inclui segundos
+        
+            return `${dia}-${mes}-${ano}-${horas}:${minutos}:${segundos}`;
+        };        
 
         // Capturar o arquivo para upload manual
-        const idMidia = "midiaMural";
+        const idMidia = `midiaMural${formatDateTituloMidia()}`;
         req.params.id = idMidia;
 
         // Criando uma Promise para capturar a resposta do uploadMidia
@@ -32,16 +45,30 @@ const uploadMural = async (req, res) => {
             return res.status(500).json({ message: 'Erro no upload da mídia', error: midiaResponse?.error || 'Erro desconhecido' });
         }
 
+        // Função para formatar a data
+        const formatDate = () => {
+            const date = new Date();
+            const dia = String(date.getDate()).padStart(2, '0');
+            const mes = String(date.getMonth() + 1).padStart(2, '0');
+            const ano = date.getFullYear();
+            const horas = String(date.getHours()).padStart(2, '0');
+            const minutos = String(date.getMinutes()).padStart(2, '0');
+        
+            return `${dia}/${mes}/${ano} ${horas}:${minutos}`;
+        };
+
+        //console.log(formatDate()); // Exemplo de saída: 03/04/2025 14:30
+
         // Criando um novo documento do mural
         const novoMural = new Mural({
-            autor,
+            autor: "Equipe Stimular", // Autor fixo
             titulo,
             midia: {
                 tipoDeMidia: midiaResponse.tipo,
                 url: midiaResponse.url,
             },
             conteudo,
-            dataCriacao: new Date().toISOString(),
+            dataCriacao: formatDate(),
         });
 
         // Salvando no banco de dados
@@ -53,6 +80,7 @@ const uploadMural = async (req, res) => {
         return res.status(500).json({ message: 'Erro ao atualizar mural.', error: error.message });
     }
 };
+
 
 const verMural = async (req, res) => {
     try {
