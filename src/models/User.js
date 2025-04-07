@@ -1,5 +1,32 @@
 const mongoose = require('mongoose');
 
+// Esquema para atualizações do app
+const TarefasAtualizacaoSchema = new mongoose.Schema({
+    tituliDaTarefa: { type: String, required: true },
+    descricaoTarefa: { type: String, required: true },
+    tipoDeTarefa: { type: String, required: true },
+    dataCriacao: { type: Date, required: true },
+    dataFinalizacao: { type: Date, required: false },
+    finalizada: { type: Boolean, required: false }
+});
+
+const AtualizacoesAppSchema = new mongoose.Schema({
+    tituloAtualizacao: { type: String, required: true },
+    tarefas: [TarefasAtualizacaoSchema],
+    descricaoAtualizacao: { type: String, required: true },
+    dataCriacao: { type: Date, required: true },
+    dataFinalizacao: { type: Date, required: false },
+    finalizada: { type: Boolean, required: false }
+});
+
+// Esquema para dados de uso do app
+const DadosAppSchema = new mongoose.Schema({
+    usuariosCadastrados: { type: Number, required: true },
+    usuariosPagantes: { type: Number, required: true },
+    receitaEstimada: { type: Number, required: true },
+    dataCriacao: { type: Date, required: true }
+});
+
 // Esquema para mural do app
 const MuralSchema = new mongoose.Schema({
     autor: { type: String, required: true },
@@ -189,6 +216,9 @@ const Conquistas = mongoose.model('Conquistas', ConquistasSchema);
 const Profissional = mongoose.model('Profissional', ProfissionalSchema);
 const Pacientes = mongoose.model('Pacientes', PacientesSchema);
 const Mural = mongoose.model('Mural', MuralSchema);
+const DadosApp = mongoose.model('DadosApp', DadosAppSchema);
+const AtualizacoesApp = mongoose.model('AtualizacoesApp', AtualizacoesAppSchema);
+const TarefasAtualizacao = mongoose.model('TarefasAtualizacao', TarefasAtualizacaoSchema);
 
 // Exportação dos Modelos
 module.exports = {
@@ -202,5 +232,8 @@ module.exports = {
     Profissional,
     Pacientes,
     Alternativas,
-    Mural
+    Mural,
+    DadosApp,
+    AtualizacoesApp,
+    TarefasAtualizacao    
 };

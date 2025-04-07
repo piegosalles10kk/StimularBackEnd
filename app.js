@@ -14,6 +14,8 @@ const uploadMidia = require('./src/routes/uploadMidiaRoutes');
 const sendEmailRoutes = require('./src/routes/sendEmailRoutes');
 const atividadesAppRoutes = require('./src/routes/atividadeAppRoutes');
 const muralRoutes = require('./src/routes/muralRoutes');
+const dadosAppRoutes = require('./src/routes/dadosAppRoutes');
+const atualizacoesRoutes = require('./src/routes/atualizacoesRoutes');
 const { PORT } = require('./config');
 
 const app = express();
@@ -42,6 +44,8 @@ app.use(uploadMidia);
 app.use(sendEmailRoutes);
 app.use(muralRoutes);
 app.use(atividadesAppRoutes);
+app.use(dadosAppRoutes);
+app.use(atualizacoesRoutes);
 
 // Conexão ao banco de dados
 connectDB();
