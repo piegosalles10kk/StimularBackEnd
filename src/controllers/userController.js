@@ -379,11 +379,61 @@ const verificarEmailCadastrado = async (req, res) => {
     }
 };
 
+const novaValidade = async (req, res) => {
+    try {
+        const { app_user_id, event } = req.body;
+
+        // Processar apenas eventos de renovação e primeira compra
+        if (event !== 'RENEWAL' && event !== 'INITIAL_PURCHASE') {
+            return res.status(200).json({ message: 'Evento ignorado', event });
+        }
+
+        // Encontrar o usuário pelo ID recebido do RevenueCat
+        const user = await User.findById(app_user_id);
+        if (!user) {
+            return res.status(404).json({ error: 'Usuário não encontrado' });
+        }
+
+        // Função para converter data no formato "dd/mm/aaaa" para objeto Date válido
+        const parseDate = (dateString) => {
+            const [dia, mes, ano] = dateString.split('/').map(Number);
+            return new Date(ano, mes - 1, dia);
+        };
+
+        // Função para gerar uma nova data com mais 30 dias
+        const addThirtyDays = (date) => {
+            const newDate = new Date(date);
+            newDate.setDate(newDate.getDate() + 30);
+            return newDate;
+        };
+
+        // Formatar data para "dd/mm/aaaa"
+        const formatDate = (date) => {
+            const dia = String(date.getDate()).padStart(2, '0');
+            const mes = String(date.getMonth() + 1).padStart(2, '0');
+            const ano = date.getFullYear();
+            return `${dia}/${mes}/${ano}`;
+        };
+
+        // Definir a nova validade adicionando 30 dias
+        const validadeAtual = parseDate(user.validade);
+        const novaData = addThirtyDays(validadeAtual);
+        user.validade = formatDate(novaData);
+
+        await user.save();
+
+        res.status(200).json({
+            message: 'Validade estendida por mais 30 dias!',
+            novaValidade: user.validade,
+        });
+
+    } catch (error) {
+        console.error("Erro ao atualizar a validade do usuário:", error);
+        res.status(500).json({ error: 'Erro ao processar o webhook' });
+    }
+};
 
 
 
 
-
-
-
-module.exports = { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser, updateUserMoeda, updatePassword, updatePasswordRecovery, getAllUserAtivos, AtivoOuInativo, getAllUserAtivosPacientes, verificarEmailCadastrado };
+module.exports = { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser, updateUserMoeda, updatePassword, updatePasswordRecovery, getAllUserAtivos, AtivoOuInativo, getAllUserAtivosPacientes, verificarEmailCadastrado, novaValidade };
