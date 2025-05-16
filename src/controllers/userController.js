@@ -420,7 +420,44 @@ const novaValidade = async (req, res) => {
     }
 };
 
+const DemoValidade = async (req, res) => {
+    try {
+        const { id, dias } = req.params;
+
+        // Encontrar usuário no banco de dados
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ error: 'Usuário não encontrado' });
+        }
+
+        // Pegando a data de hoje
+        const dataHoje = new Date();
+
+        // Somando os dias informados
+        dataHoje.setDate(dataHoje.getDate() + parseInt(dias, 10));
+
+        // Formatar a nova validade
+        const formatDate = (date) => {
+            const dia = String(date.getDate()).padStart(2, '0');
+            const mes = String(date.getMonth() + 1).padStart(2, '0');
+            const ano = date.getFullYear();
+            return `${dia}/${mes}/${ano}`;
+        };
+
+        // Atualizar validade do usuário com a nova data calculada
+        user.validade = formatDate(dataHoje);
+        await user.save();
+
+        res.status(200).json({
+            message: 'Validade do usuário atualizada com sucesso!',
+            novaValidade: user.validade,
+        });
+
+    } catch (error) {
+        console.error("Erro ao processar atualização de validade:", error);
+        res.status(500).json({ error: 'Erro ao atualizar validade' });
+    }
+};
 
 
-
-module.exports = { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser, updateUserMoeda, updatePassword, updatePasswordRecovery, getAllUserAtivos, AtivoOuInativo, getAllUserAtivosPacientes, verificarEmailCadastrado, novaValidade };
+module.exports = { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser, updateUserMoeda, updatePassword, updatePasswordRecovery, getAllUserAtivos, AtivoOuInativo, getAllUserAtivosPacientes, verificarEmailCadastrado, novaValidade, DemoValidade };
