@@ -29,7 +29,7 @@ router.delete('/user/:id', checkToken, deleteUser);
 
 router.patch('/users/:id/moeda', checkToken, updateUserMoeda);
 
-router.post('/validade', novaValidade);
+router.post('/validade',checkToken, novaValidade);
 
 
 

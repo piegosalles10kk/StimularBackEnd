@@ -381,33 +381,23 @@ const verificarEmailCadastrado = async (req, res) => {
 
 const novaValidade = async (req, res) => {
     try {
-        const { app_user_id, event } = req.body;
+        const { app_user_id, type, expiration_at_ms } = req.body.event; // Ajuste para capturar os dados corretamente
 
-        // Processar apenas eventos de renovação e primeira compra
-        if (event !== 'RENEWAL' && event !== 'INITIAL_PURCHASE') {
-            return res.status(200).json({ message: 'Evento ignorado', event });
+        // Garantir que estamos processando apenas eventos relevantes
+        if (type !== 'RENEWAL' && type !== 'INITIAL_PURCHASE') {
+            return res.status(200).json({ message: 'Evento ignorado', event: req.body.event });
         }
 
-        // Encontrar o usuário pelo ID recebido do RevenueCat
+        // Encontrar usuário no banco de dados
         const user = await User.findById(app_user_id);
         if (!user) {
             return res.status(404).json({ error: 'Usuário não encontrado' });
         }
 
-        // Função para converter data no formato "dd/mm/aaaa" para objeto Date válido
-        const parseDate = (dateString) => {
-            const [dia, mes, ano] = dateString.split('/').map(Number);
-            return new Date(ano, mes - 1, dia);
-        };
+        // Converter timestamp de milissegundos para data válida
+        const parseDate = (timestamp) => new Date(timestamp);
 
-        // Função para gerar uma nova data com mais 30 dias
-        const addThirtyDays = (date) => {
-            const newDate = new Date(date);
-            newDate.setDate(newDate.getDate() + 30);
-            return newDate;
-        };
-
-        // Formatar data para "dd/mm/aaaa"
+        // Formatar a nova validade
         const formatDate = (date) => {
             const dia = String(date.getDate()).padStart(2, '0');
             const mes = String(date.getMonth() + 1).padStart(2, '0');
@@ -415,21 +405,18 @@ const novaValidade = async (req, res) => {
             return `${dia}/${mes}/${ano}`;
         };
 
-        // Definir a nova validade adicionando 30 dias
-        const validadeAtual = parseDate(user.validade);
-        const novaData = addThirtyDays(validadeAtual);
-        user.validade = formatDate(novaData);
-
+        // Atualizar validade do usuário com a data de expiração enviada pelo RevenueCat
+        user.validade = formatDate(parseDate(expiration_at_ms));
         await user.save();
 
         res.status(200).json({
-            message: 'Validade estendida por mais 30 dias!',
+            message: 'Validade do usuário atualizada com sucesso!',
             novaValidade: user.validade,
         });
 
     } catch (error) {
-        console.error("Erro ao atualizar a validade do usuário:", error);
-        res.status(500).json({ error: 'Erro ao processar o webhook' });
+        console.error("Erro ao processar webhook:", error);
+        res.status(500).json({ error: 'Erro ao atualizar validade' });
     }
 };
 
