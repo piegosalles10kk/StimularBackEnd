@@ -95,8 +95,26 @@ const createUser = async (req, res) => {
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(senha, salt);
   
+    //Tempo de Demo
+    const dias = 30;
+
+        // Pegando a data de hoje
+        const dataHoje = new Date();
+
+        // Somando os dias informados
+        dataHoje.setDate(dataHoje.getDate() + parseInt(dias, 10));
+
+        // Formatar a nova validade
+        const formatDate = (date) => {
+            const dia = String(date.getDate()).padStart(2, '0');
+            const mes = String(date.getMonth() + 1).padStart(2, '0');
+            const ano = date.getFullYear();
+            return `${dia}/${mes}/${ano}`;
+        };
+        
+
     // Definir validade para Admin ou Profissional
-    const validade = (tipoDeConta === 'Admin' || tipoDeConta === 'Profissional') ? '31/12/2999' : req.body.validade;
+    const validade = (tipoDeConta === 'Admin' || tipoDeConta === 'Profissional') ? '31/12/2999' : formatDate(dataHoje);
   
     // Definir grupo baseado no tipo de conta
     const grupo = (tipoDeConta === 'Admin') ? ['Admin'] : (tipoDeConta === 'Profissional') ? ['Profissional'] : [];
@@ -330,6 +348,7 @@ const updatePassword = async (req, res) => {
 
 const AtivoOuInativo = async (req, res) => {
     const { id } = req.params;
+    const { motivo } = req.body;
 
     try {
         // Encontrar o usuário pelo ID
@@ -340,6 +359,7 @@ const AtivoOuInativo = async (req, res) => {
         }
 
         // Alternar o status de ativo
+        user.motivoDesativacao = motivo;
         user.ativo = !user.ativo;
 
         // Salvar as alterações
@@ -407,6 +427,7 @@ const novaValidade = async (req, res) => {
 
         // Atualizar validade do usuário com a data de expiração enviada pelo RevenueCat
         user.validade = formatDate(parseDate(expiration_at_ms));
+        user.assinatura = formatDate(parseDate(expiration_at_ms))
         await user.save();
 
         res.status(200).json({

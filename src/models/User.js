@@ -168,6 +168,7 @@ const UserSchema = new mongoose.Schema({
     tipoDeConta: { type: String, required: true },
     conquistas: [ConquistasSchema],
     validade: { type: String, required: false },
+    assinatura: { type: String, required: false },
     moeda: { 
         valor: { type: String, required: false },
         dataDeCriacao : { type: String, required: false }
@@ -201,7 +202,8 @@ const UserSchema = new mongoose.Schema({
     gruposDeAtividadesCriadas: [{ type: mongoose.Schema.Types.ObjectId, ref: 'GrupoAtividades', required: false }],
     recupararSenha: { type: Boolean, required: false },
     codigoRecuperarSenha: { type: String, required: false },
-    ativo: { type: Boolean, required: true }
+    ativo: { type: Boolean, required: true },
+    motivoDesativacao: { type: String, required: false }
 });
 
 // Modelos
