@@ -1,5 +1,44 @@
 const mongoose = require('mongoose');
 
+// Esquema para atualizações do app
+const TarefasAtualizacaoSchema = new mongoose.Schema({
+    tituliDaTarefa: { type: String, required: true },
+    descricaoTarefa: { type: String, required: true },
+    tipoDeTarefa: { type: String, required: true },
+    dataCriacao: { type: Date, required: true },
+    dataFinalizacao: { type: Date, required: false },
+    finalizada: { type: Boolean, required: false }
+});
+
+const AtualizacoesAppSchema = new mongoose.Schema({
+    tituloAtualizacao: { type: String, required: true },
+    tarefas: [TarefasAtualizacaoSchema],
+    descricaoAtualizacao: { type: String, required: true },
+    dataCriacao: { type: Date, required: true },
+    dataFinalizacao: { type: Date, required: false },
+    finalizada: { type: Boolean, required: false }
+});
+
+// Esquema para dados de uso do app
+const DadosAppSchema = new mongoose.Schema({
+    usuariosCadastrados: { type: Number, required: true },
+    usuariosPagantes: { type: Number, required: true },
+    receitaEstimada: { type: Number, required: true },
+    dataCriacao: { type: Date, required: true }
+});
+
+// Esquema para mural do app
+const MuralSchema = new mongoose.Schema({
+    autor: { type: String, required: true },
+    titulo: { type: String, required: true },
+    midia: {
+        tipoDeMidia: { type: String, required: false },
+        url: { type: String, required: false }
+    },
+    conteudo: { type: String, required: true },
+    dataCriacao: { type: String, required: true }
+});
+
 // Esquema para Alternativas
 const AlternativasSchema = new mongoose.Schema({
     alternativa: { type: String, required: true },
@@ -129,6 +168,7 @@ const UserSchema = new mongoose.Schema({
     tipoDeConta: { type: String, required: true },
     conquistas: [ConquistasSchema],
     validade: { type: String, required: false },
+    assinatura: { type: String, required: false },
     moeda: { 
         valor: { type: String, required: false },
         dataDeCriacao : { type: String, required: false }
@@ -162,7 +202,8 @@ const UserSchema = new mongoose.Schema({
     gruposDeAtividadesCriadas: [{ type: mongoose.Schema.Types.ObjectId, ref: 'GrupoAtividades', required: false }],
     recupararSenha: { type: Boolean, required: false },
     codigoRecuperarSenha: { type: String, required: false },
-    ativo: { type: Boolean, required: true }
+    ativo: { type: Boolean, required: true },
+    motivoDesativacao: { type: String, required: false }
 });
 
 // Modelos
@@ -176,6 +217,10 @@ const Alternativas = mongoose.model('Alternativas', AlternativasSchema);
 const Conquistas = mongoose.model('Conquistas', ConquistasSchema);
 const Profissional = mongoose.model('Profissional', ProfissionalSchema);
 const Pacientes = mongoose.model('Pacientes', PacientesSchema);
+const Mural = mongoose.model('Mural', MuralSchema);
+const DadosApp = mongoose.model('DadosApp', DadosAppSchema);
+const AtualizacoesApp = mongoose.model('AtualizacoesApp', AtualizacoesAppSchema);
+const TarefasAtualizacao = mongoose.model('TarefasAtualizacao', TarefasAtualizacaoSchema);
 
 // Exportação dos Modelos
 module.exports = {
@@ -188,5 +233,9 @@ module.exports = {
     Conquistas,
     Profissional,
     Pacientes,
-    Alternativas
+    Alternativas,
+    Mural,
+    DadosApp,
+    AtualizacoesApp,
+    TarefasAtualizacao    
 };

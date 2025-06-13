@@ -68,7 +68,7 @@ const createUser = async (req, res) => {
     const { email, nome, foto, telefone, dataDeNascimento, senha, confirmarSenha, tipoDeConta, moeda, ativo } = req.body;
   
     // Log do payload recebido
-    console.log('Payload recebido:', req.body);
+    //console.log('Payload recebido:', req.body);
   
     // Verificar campos obrigatórios
     const missingFields = [];
@@ -95,8 +95,26 @@ const createUser = async (req, res) => {
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(senha, salt);
   
+    //Tempo de Demo
+    const dias = 30;
+
+        // Pegando a data de hoje
+        const dataHoje = new Date();
+
+        // Somando os dias informados
+        dataHoje.setDate(dataHoje.getDate() + parseInt(dias, 10));
+
+        // Formatar a nova validade
+        const formatDate = (date) => {
+            const dia = String(date.getDate()).padStart(2, '0');
+            const mes = String(date.getMonth() + 1).padStart(2, '0');
+            const ano = date.getFullYear();
+            return `${dia}/${mes}/${ano}`;
+        };
+        
+
     // Definir validade para Admin ou Profissional
-    const validade = (tipoDeConta === 'Admin' || tipoDeConta === 'Profissional') ? '31/12/2999' : req.body.validade;
+    const validade = (tipoDeConta === 'Admin' || tipoDeConta === 'Profissional') ? '31/12/2999' : formatDate(dataHoje);
   
     // Definir grupo baseado no tipo de conta
     const grupo = (tipoDeConta === 'Admin') ? ['Admin'] : (tipoDeConta === 'Profissional') ? ['Profissional'] : [];
@@ -151,7 +169,7 @@ const createUser = async (req, res) => {
 
         const updatedUser = await User.findByIdAndUpdate(id, updates, { new: true });
 
-        res.status(200).json({ msg: 'Usuário atualizado com sucesso', user: updatedUser });
+        res.status(200).json({ msg: 'Usuário atualizado com sucesso' });
     } catch (err) {
         console.log(err);
         res.status(500).json({ msg: 'Erro ao atualizar usuário' });
@@ -192,7 +210,7 @@ const loginUser = async (req, res) => {
 
     try {
         const secret = process.env.SECRET;
-        const token = jwt.sign({ id: user._id, tipoDeConta: user.tipoDeConta, nivel: user.nivel, grupo: user.grupo, ativo: user.ativo }, secret);
+        const token = jwt.sign({ id: user._id, tipoDeConta: user.tipoDeConta, nivel: user.nivel, grupo: user.grupo, ativo: user.ativo, validade: user.validade }, secret);
 
         // Inclua o ID do usuário na resposta
         res.status(200).json({
@@ -201,7 +219,9 @@ const loginUser = async (req, res) => {
             tipoDeConta: user.tipoDeConta,
             grupoDoUser: user.grupo,
             ativo: user.ativo,
-            id: user._id // Adicionando o ID do usuário aqui
+            id: user._id ,
+            validade: user.validade
+            // Adicionando o ID do usuário aqui
         });
     } catch (err) {
         console.log(err);
@@ -222,7 +242,7 @@ const updateUserMoeda = async (req, res) => {
     }
 
     try {
-        console.log('Dados recebidos para atualização do campo moeda:', req.body); // Loga os dados recebidos
+        //console.log('Dados recebidos para atualização do campo moeda:', req.body); // Loga os dados recebidos
 
         // Primeiro, busque o usuário atual para obter a moeda existente
         const user = await User.findById(id);
@@ -244,7 +264,7 @@ const updateUserMoeda = async (req, res) => {
             { new: true }
         );
 
-        res.status(200).json({ msg: 'Moeda do usuário atualizada com sucesso', user: updatedUser });
+        res.status(200).json({ msg: 'Moeda do usuário atualizada com sucesso' });
     } catch (err) {
         console.log('Erro ao atualizar moeda:', err);
         res.status(500).json({ msg: 'Erro ao atualizar moeda do usuário' });
@@ -328,6 +348,7 @@ const updatePassword = async (req, res) => {
 
 const AtivoOuInativo = async (req, res) => {
     const { id } = req.params;
+    const { motivo } = req.body;
 
     try {
         // Encontrar o usuário pelo ID
@@ -338,6 +359,7 @@ const AtivoOuInativo = async (req, res) => {
         }
 
         // Alternar o status de ativo
+        user.motivoDesativacao = motivo;
         user.ativo = !user.ativo;
 
         // Salvar as alterações
@@ -377,11 +399,86 @@ const verificarEmailCadastrado = async (req, res) => {
     }
 };
 
+const novaValidade = async (req, res) => {
+    try {
+        const { app_user_id, type, expiration_at_ms } = req.body.event; // Ajuste para capturar os dados corretamente
+
+        // Garantir que estamos processando apenas eventos relevantes
+        if (type !== 'RENEWAL' && type !== 'INITIAL_PURCHASE') {
+            return res.status(200).json({ message: 'Evento ignorado', event: req.body.event });
+        }
+
+        // Encontrar usuário no banco de dados
+        const user = await User.findById(app_user_id);
+        if (!user) {
+            return res.status(404).json({ error: 'Usuário não encontrado' });
+        }
+
+        // Converter timestamp de milissegundos para data válida
+        const parseDate = (timestamp) => new Date(timestamp);
+
+        // Formatar a nova validade
+        const formatDate = (date) => {
+            const dia = String(date.getDate()).padStart(2, '0');
+            const mes = String(date.getMonth() + 1).padStart(2, '0');
+            const ano = date.getFullYear();
+            return `${dia}/${mes}/${ano}`;
+        };
+
+        // Atualizar validade do usuário com a data de expiração enviada pelo RevenueCat
+        user.validade = formatDate(parseDate(expiration_at_ms));
+        user.assinatura = formatDate(parseDate(expiration_at_ms))
+        await user.save();
+
+        res.status(200).json({
+            message: 'Validade do usuário atualizada com sucesso!',
+            novaValidade: user.validade,
+        });
+
+    } catch (error) {
+        console.error("Erro ao processar webhook:", error);
+        res.status(500).json({ error: 'Erro ao atualizar validade' });
+    }
+};
+
+const DemoValidade = async (req, res) => {
+    try {
+        const { id, dias } = req.params;
+
+        // Encontrar usuário no banco de dados
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ error: 'Usuário não encontrado' });
+        }
+
+        // Pegando a data de hoje
+        const dataHoje = new Date();
+
+        // Somando os dias informados
+        dataHoje.setDate(dataHoje.getDate() + parseInt(dias, 10));
+
+        // Formatar a nova validade
+        const formatDate = (date) => {
+            const dia = String(date.getDate()).padStart(2, '0');
+            const mes = String(date.getMonth() + 1).padStart(2, '0');
+            const ano = date.getFullYear();
+            return `${dia}/${mes}/${ano}`;
+        };
+
+        // Atualizar validade do usuário com a nova data calculada
+        user.validade = formatDate(dataHoje);
+        await user.save();
+
+        res.status(200).json({
+            message: 'Validade do usuário atualizada com sucesso!',
+            novaValidade: user.validade,
+        });
+
+    } catch (error) {
+        console.error("Erro ao processar atualização de validade:", error);
+        res.status(500).json({ error: 'Erro ao atualizar validade' });
+    }
+};
 
 
-
-
-
-
-
-module.exports = { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser, updateUserMoeda, updatePassword, updatePasswordRecovery, getAllUserAtivos, AtivoOuInativo, getAllUserAtivosPacientes, verificarEmailCadastrado };
+module.exports = { getUser, getAllUser, createUser, updateUser, deleteUser, loginUser, updateUserMoeda, updatePassword, updatePasswordRecovery, getAllUserAtivos, AtivoOuInativo, getAllUserAtivosPacientes, verificarEmailCadastrado, novaValidade, DemoValidade };
