@@ -420,14 +420,17 @@ const createGrupoAtividadesAuto = async (req, res) => {
                 throw new Error('Não foi possível determinar o usuário com mais atividades.');
             }
 
-            let imagem = '';
+            //Função legado para pegar a imagem do grupo
 
-            if (usuarioComMaisAtividades) {
-                const usuarioComMaisAtividadesObj = await User.findById(usuarioComMaisAtividades);
-                if (usuarioComMaisAtividadesObj && usuarioComMaisAtividadesObj.foto) {
-                    imagem = usuarioComMaisAtividadesObj.foto;
-                }
-            }
+            //let imagem = '';
+            //if (usuarioComMaisAtividades) {
+            // const usuarioComMaisAtividadesObj = await User.findById(usuarioComMaisAtividades);
+            // if (usuarioComMaisAtividadesObj && usuarioComMaisAtividadesObj.foto) {
+            //     imagem = usuarioComMaisAtividadesObj.foto;
+            // }
+            //  }
+
+            let imagem = criador.foto;
 
             if (!imagem) {
                 throw new Error('Nenhuma imagem foi selecionada para o grupo.');
@@ -441,7 +444,7 @@ const createGrupoAtividadesAuto = async (req, res) => {
                 dataCriacao: Date.now(),
                 nomeGrupo: `Treinamento de ${criador.nome.split(' ')[0]}`,
                 nivelDaAtividade: criador.nivel,
-                descricao: `Plano de treinamento gerado diariamente para atender exclusivamente ${criador.nome}. Para acompanhamento profissional, entre em contato com nossos profissionais.`,
+                descricao: `Plano de treinamento desenvolvido no dia ${new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })} para atender exclusivamente ${criador.nome}. Para acompanhamento profissional, entre em contato com nossos profissionais.`,
                 criador: { id: criadorId, nome: criador.nome },
                 dominio: ['TEA'],
                 atividades: savedAtividades,
