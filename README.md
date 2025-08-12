@@ -1,4 +1,4 @@
-
+[
 # Stimular Back-end
 
 Aplicação back-end programada em node-js voltada para toda as necessidades do aplicativo Stimular.
@@ -305,3 +305,4 @@ DELETE /user/:id/atividadeFinalizada/:atividadeId
 
 - [@piegosalles10kk](https://github.com/piegosalles10kk)
 
+](https://claude.ai/public/artifacts/e5b26aef-5b33-4417-90f8-e5027f9108a4)
