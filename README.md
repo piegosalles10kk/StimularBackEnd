@@ -503,6 +503,3 @@ AZURE_STORAGE_KEY=your-azure-key
 - Permissões por tipo de usuário
 
 
-**Desenvolvido com ❤️ pela equipe Stimular**
-
-*Para mais informações técnicas, consulte a documentação da API ou entre em contato com a equipe de desenvolvimento.*
