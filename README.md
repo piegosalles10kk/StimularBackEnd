@@ -1,507 +1,508 @@
-# API Stimular - Documentação de Rotas
+# API StimuLar - Backend
 
-Esta documentação descreve todas as rotas disponíveis na API Stimular, incluindo seus métodos, parâmetros e autenticação necessária.
+## 📋 Descrição do Projeto
 
-## 🔐 Autenticação
+A **API StimuLar** é o backend do aplicativo StimuLar, desenvolvido para auxiliar famílias atípicas na estimulação de seus filhos. A API implementa princípios baseados na Terapia ABA (Applied Behavior Analysis) e fornece endpoints para gerenciamento de usuários, atividades, exercícios e acompanhamento de progresso.
 
-A maioria das rotas requer autenticação via token JWT. O token deve ser enviado no header da requisição:
+> ⚠️ **Importante**: Esta API não substitui consultas com profissionais de saúde. O uso deve ser acompanhado por profissionais especializados.
+
+## 🏗️ Arquitetura do Sistema
+
+### 📂 Estrutura de Pastas
+
+```
+src/
+├── 🎮 controllers/           # Lógica de negócio dos endpoints
+│   ├── atividadeAppController.js      # Atividades standalone
+│   ├── atividadeController.js         # Atividades em grupos
+│   ├── atividadeEmAndamentoController.js  # Controle de progresso
+│   ├── atividadeFinalizadaController.js   # Atividades completadas
+│   ├── atualizacoesController.js      # Atualizações do app
+│   ├── dadosAppController.js          # Estatísticas da aplicação
+│   ├── exercicioController.js         # Exercícios individuais
+│   ├── grupoAtividadesController.js   # Grupos de atividades
+│   └── userController.js              # Gerenciamento de usuários
+├── 🛡️ middleware/             # Middlewares de autenticação
+│   └── checkToken.js                  # Validação JWT
+├── 📊 models/                # Modelos de dados (MongoDB)
+│   └── User.js                        # Schemas principais
+└── 🛣️ routes/                 # Definição das rotas
+    ├── atividadeAppRoutes.js          # Rotas de atividades standalone
+    ├── atividadeEmAndamentoRoutes.js  # Rotas de atividades em progresso
+    ├── atividadeFinalizadaRoutes.js   # Rotas de atividades finalizadas
+    ├── atividadeRoutes.js             # Rotas de atividades em grupos
+    ├── atualizacoesRoutes.js          # Rotas de atualizações
+    ├── dadosAppRoutes.js              # Rotas de estatísticas
+    ├── exerciciosRoutes.js            # Rotas de exercícios
+    ├── grupoAtividadesRoutes.js       # Rotas de grupos
+    ├── uploadMidiaRoutes.js           # Upload de arquivos
+    └── userRoutes.js                  # Rotas de usuários
+```
+
+## 🔐 Sistema de Autenticação
+
+A API utiliza **JWT (JSON Web Tokens)** para autenticação. O token deve ser enviado no header das requisições protegidas:
+
 ```
 Authorization: Bearer {token}
 ```
 
-## 👤 Usuários (User Routes)
-
-### Autenticação
-
-#### `POST /auth/register`
-**Descrição:** Registra um novo usuário  
-**Autenticação:** ❌ Não requerida  
-**Body:** 
+### Estrutura do Token JWT
 ```json
 {
-  "email": "string",
-  "nome": "string", 
-  "telefone": "string",
-  "dataDeNascimento": "string",
-  "senha": "string",
-  "confirmarSenha": "string",
-  "tipoDeConta": "string", // Admin, Profissional, Paciente
-  "moeda": {
-    "valor": "string",
-    "dataDeCriacao": "string"
+  "id": "ObjectId do usuário",
+  "tipoDeConta": "Admin|Profissional|Paciente",
+  "nivel": "número do nível",
+  "grupo": ["array de grupos"],
+  "ativo": "boolean",
+  "validade": "data de expiração"
+}
+```
+
+## 👥 Tipos de Usuário
+
+### 1. **Paciente**
+- Acesso às atividades personalizadas
+- Visualização do progresso
+- Sistema de moedas e conquistas
+- Criação automática de grupos de atividades
+
+### 2. **Profissional**
+- Acompanhamento de múltiplos pacientes
+- Visualização de dados e estatísticas
+- Gestão de informações profissionais
+- Criação manual de atividades
+
+### 3. **Admin**
+- Controle total do sistema
+- Gestão de usuários e atividades
+- Relatórios e análises
+- Administração de conteúdo
+
+## 📡 Rotas da API
+
+### 🔐 Autenticação e Usuários (`/user`, `/auth`)
+
+#### **Autenticação**
+```javascript
+POST /auth/register          // ❌ Registra novo usuário
+POST /auth/login            // ❌ Realiza login
+GET /auth/:email           // ❌ Verifica se email existe
+PUT /auth/update-password-recovery  // ❌ Atualiza senha via recuperação
+PUT /auth/update-password/:id       // ✅ Atualiza senha do usuário logado
+```
+
+#### **Gerenciamento de Usuários**
+```javascript
+GET /user                   // ✅ Lista todos os usuários
+GET /user-ativos           // ✅ Lista usuários ativos
+GET /user-ativos-paciente  // ✅ Lista pacientes do profissional logado
+GET /user/:id              // ✅ Busca usuário específico
+PUT /user/:id              // ✅ Atualiza dados do usuário
+DELETE /user/:id           // ✅ Remove usuário
+PUT /usuario/status/:id    // ✅ Ativa/desativa usuário
+PATCH /users/:id/moeda     // ✅ Atualiza moedas do usuário
+```
+
+#### **Assinatura e Validade**
+```javascript
+POST /validade             // ❌ Webhook RevenueCat
+GET /demo/:id/:dias        // ✅ Atualiza validade demo
+```
+
+### 🎯 Atividades Standalone (`/atividadeApp`)
+
+```javascript
+POST /atividadeApp                    // ✅ Cria nova atividade
+GET /atividadeApp                     // ✅ Lista todas as atividades
+GET /atividadeApp/:atividadeId        // ✅ Busca atividade específica
+PUT /atividadeApp/:atividadeId        // ✅ Atualiza atividade
+DELETE /atividadeApp/:atividadeId     // ✅ Remove atividade
+```
+
+### 🎮 Grupos de Atividades (`/grupoatividades`)
+
+```javascript
+POST /grupoatividades                 // ✅ Cria grupo manualmente
+POST /grupoatividadesAuto            // ✅ Cria grupo automaticamente (Pacientes)
+GET /grupoatividadesAuto             // ✅ Lista grupos criados pelo usuário
+GET /grupoatividades                 // ❌ Lista grupos com filtros
+GET /grupoatividades/:id             // ✅ Busca grupo específico
+PUT /grupoatividades/:id             // ✅ Atualiza grupo completo
+PATCH /grupoatividades/:id           // ✅ Atualiza campos específicos
+DELETE /grupoatividades/:id          // ✅ Remove grupo
+GET /grupos-atividades/nivel         // ✅ Filtra por nível e critérios
+```
+
+### 🏃 Atividades em Grupos (`/atividades`)
+
+```javascript
+POST /grupoatividades/:grupoAtividadeId/atividades  // ✅ Cria atividade no grupo
+GET /atividades/:idGrupoAtividades/:idAtividade     // ✅ Busca atividade específica
+PATCH /atividades/:id                               // ✅ Atualiza atividade
+DELETE /atividades/:id                              // ✅ Remove atividade
+```
+
+### ⏳ Atividades em Andamento (`/atividadesemandamento`)
+
+```javascript
+POST /grupoatividades/:grupoAtividadeId/atividadesemandamento  // ✅ Inicia atividade
+GET /atividadesemandamento/:id                                // ✅ Busca atividade em andamento
+PATCH /atividadesemandamento/:id                             // ✅ Atualiza atividade em andamento
+PATCH /grupos/:grupoId/respostas                             // ✅ Atualiza resposta específica
+DELETE /atividadesemandamento/:id                            // ✅ Remove atividade em andamento
+```
+
+### ✅ Atividades Finalizadas (`/atividadesfinalizadas`)
+
+```javascript
+POST /grupoatividades/:grupoAtividadeId/atividadesfinalizadas  // ✅ Finaliza atividade
+GET /atividadesfinalizadas/:id                                // ✅ Busca atividade finalizada
+PATCH /atividadesfinalizadas/:id                             // ✅ Atualiza atividade finalizada
+DELETE /atividadesfinalizadas/:grupoAtividadesId             // ✅ Remove atividade finalizada
+```
+
+### 📝 Exercícios (`/grupoatividades/.../exercicios`)
+
+```javascript
+PATCH /grupoatividades/:grupoAtividadeId/atividades/:atividadeId/exercicios          // ✅ Adiciona exercício
+GET /grupoatividades/:grupoAtividadeId/atividades/:atividadeId/exercicios/:exercicioId     // ✅ Busca exercício
+PATCH /grupoatividades/:grupoAtividadeId/atividades/:atividadeId/exercicios/:exercicioId   // ✅ Atualiza exercício
+DELETE /grupoatividades/:grupoAtividadeId/atividades/:atividadeId/exercicios/:exercicioId  // ✅ Remove exercício
+```
+
+### 🔄 Atualizações (`/atualizacoes`)
+
+```javascript
+POST /atualizacoes          // ❌ Cria nova atualização
+GET /atualizacoes           // ❌ Lista todas as atualizações
+PUT /atualizacoes/:id       // ❌ Edita atualização
+DELETE /atualizacoes/:id    // ❌ Remove atualização
+```
+
+### 📊 Dados da Aplicação (`/dadosApp`)
+
+```javascript
+POST /dadosApp              // ❌ Gera dados estatísticos
+GET /dadosApp               // ✅ Busca dados estatísticos
+```
+
+### 📁 Upload de Mídia (`/midia`)
+
+```javascript
+POST /midia/post/:id        // ❌ Upload de mídia (Azure Blob Storage)
+```
+
+## 🗄️ Estrutura dos Modelos (MongoDB)
+
+### **User Schema**
+```javascript
+{
+  // Dados pessoais
+  nome: String,
+  email: String,
+  telefone: String,
+  dataDeNascimento: String,
+  foto: String,
+  senha: String,
+  
+  // Configurações de conta
+  tipoDeConta: "Admin" | "Profissional" | "Paciente",
+  ativo: Boolean,
+  validade: String, // formato "dd/mm/yyyy"
+  
+  // Sistema de moedas e progresso
+  moeda: {
+    valor: String,
+    dataDeCriacao: Date
   },
-  "foto": "string",
-  "ativo": boolean
+  nivel: Number,
+  
+  // Relacionamentos
+  profissional: [{
+    idDoProfissional: ObjectId,
+    nome: String
+  }],
+  
+  // Diagnóstico (apenas Pacientes)
+  erros: {
+    socializacao: [String],
+    cognicao: [String],
+    linguagem: [String],
+    autoCuidado: [String],
+    motor: [String]
+  },
+  
+  // Atividades
+  gruposDeAtividadesEmAndamento: [GrupoAtividadeEmAndamento],
+  gruposDeAtividadesFinalizadas: [GrupoAtividadeFinalizada]
 }
 ```
 
-#### `POST /auth/login`
-**Descrição:** Realiza login do usuário  
-**Autenticação:** ❌ Não requerida  
-**Body:** 
-```json
+### **GrupoAtividades Schema**
+```javascript
 {
-  "email": "string",
-  "senha": "string"
+  nomeGrupo: String,
+  descricao: String,
+  imagem: String,
+  identificador: String,
+  nivelDaAtividade: Number,
+  dominio: [String], // ["TEA", "TDAH", etc.]
+  
+  criador: {
+    id: ObjectId,
+    nome: String
+  },
+  
+  atividades: [ObjectId], // Referência para Atividades
+  pontuacaoTotalDoGrupo: Number,
+  dataCriacao: Date
 }
 ```
 
-#### `GET /auth/:email`
-**Descrição:** Verifica se email está cadastrado  
-**Autenticação:** ❌ Não requerida  
-**Parâmetros:** `email` (string)
-
-#### `PUT /auth/update-password-recovery`
-**Descrição:** Atualiza senha via recuperação  
-**Autenticação:** ❌ Não requerida  
-**Body:** 
-```json
+### **Atividades Schema**
+```javascript
 {
-  "email": "string",
-  "codigoRecuperarSenha": "string", 
-  "senha": "string",
-  "confirmarSenha": "string"
+  criador: {
+    id: ObjectId,
+    nome: String
+  },
+  
+  // Informações da atividade
+  idade: Number,
+  marco: String,
+  nomdeDaAtividade: String,
+  descicaoDaAtividade: String,
+  fotoDaAtividade: String,
+  tipoDeAtividade: String,
+  
+  exercicios: [Exercicio],
+  pontuacaoTotalAtividade: Number,
+  createdAt: Date
 }
 ```
 
-#### `PUT /auth/update-password/:id`
-**Descrição:** Atualiza senha do usuário logado  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `id` (ObjectId do usuário)  
-**Body:** 
-```json
+### **Exercicio Schema (Subdocumento)**
+```javascript
 {
-  "senhaAtual": "string",
-  "senhaNova": "string", 
-  "confirmarSenhaNova": "string"
+  exercicioId: ObjectId,
+  enunciado: String,
+  exercicio: String,
+  pontuacao: Number,
+  
+  midia: {
+    tipoDeMidia: "imagem" | "video" | "gif",
+    url: String
+  },
+  
+  alternativas: [{
+    _id: ObjectId,
+    alternativa: String,
+    correta: Boolean
+  }]
 }
 ```
 
-### Gerenciamento de Usuários
+## 🎯 Controllers - Lógica de Negócio
 
-#### `GET /user`
-**Descrição:** Lista todos os usuários  
-**Autenticação:** ✅ Requerida
+### **userController.js**
+Gerencia todas as operações relacionadas aos usuários:
 
-#### `GET /user-ativos`
-**Descrição:** Lista apenas usuários ativos  
-**Autenticação:** ✅ Requerida
+#### Principais Funções:
+- `createUser()` - Cadastra novos usuários com validações
+- `loginUser()` - Autenticação com JWT
+- `updateUser()` - Atualiza dados do usuário
+- `getAllUserAtivosPacientes()` - Lista pacientes vinculados ao profissional
+- `updateUserMoeda()` - Sistema de moedas
+- `updatePasswordRecovery()` - Recuperação de senha via email
+- `novaValidade()` - Webhook para atualizações de assinatura
+- `DemoValidade()` - Atualiza período demo
 
-#### `GET /user-ativos-paciente`
-**Descrição:** Lista pacientes ativos vinculados ao profissional logado  
-**Autenticação:** ✅ Requerida (Profissional)
+#### Características Especiais:
+- **Validação de email**: Verificação de formato e duplicação
+- **Criptografia de senha**: BCrypt com salt 12
+- **Sistema de validade**: Controle de assinaturas
+- **Tipos de conta**: Admin, Profissional, Paciente com permissões diferenciadas
 
-#### `GET /user/:id`
-**Descrição:** Busca usuário específico por ID  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `id` (ObjectId do usuário)
+### **grupoAtividadesController.js**
+Controla a criação e gerenciamento de grupos de atividades:
 
-#### `PUT /user/:id`
-**Descrição:** Atualiza dados do usuário  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `id` (ObjectId do usuário)  
-**Body:** Dados a serem atualizados
+#### Principais Funções:
+- `createGrupoAtividades()` - Criação manual de grupos
+- `createGrupoAtividadesAuto()` - Criação automática baseada no perfil do paciente
+- `filterGrupoAtividadesByNivel()` - Filtros inteligentes por nível e tipo
+- `getGrupoAtividadesAuto()` - Lista grupos criados automaticamente
 
-#### `DELETE /user/:id`
-**Descrição:** Remove usuário  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `id` (ObjectId do usuário)
+#### Lógica Especial:
+```javascript
+// Algoritmo de criação automática (Pacientes)
+1. Analisa o campo "erros" do usuário
+2. Busca atividades por marco de desenvolvimento
+3. Seleciona aleatoriamente atividades por categoria
+4. Verifica atividades já realizadas
+5. Adiciona atividades com performance < 85%
+6. Completa até 5 atividades por grupo
+```
 
-#### `PUT /usuario/status/:id`
-**Descrição:** Ativa/desativa usuário  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `id` (ObjectId do usuário)  
-**Body:** 
-```json
+### **atividadeEmAndamentoController.js**
+Gerencia o progresso em tempo real:
+
+#### Principais Funções:
+- `createAtividadeEmAndamento()` - Inicia nova sessão de atividades
+- `updateRespostaAtividadeEmAndamento()` - Atualiza respostas individuais
+- `updateAtividadeEmAndamento()` - Atualiza progresso geral
+
+#### Sistema de Pontuação:
+```javascript
+// Estrutura de resposta
 {
-  "motivo": "string"
+  exercicioId: ObjectId,
+  atividade_id: ObjectId,
+  isCorreta: Boolean,
+  pontuacao: Number,
+  pontuacaoPossivel: Number,
+  porcentagem: Number, // (pontuacao/pontuacaoPossivel) * 100
+  tipoAtividade: String
 }
 ```
 
-#### `PATCH /users/:id/moeda`
-**Descrição:** Atualiza moedas do usuário  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `id` (ObjectId do usuário)  
-**Body:** 
-```json
-{
-  "moeda": {
-    "valor": "string",
-    "dataDeCriacao": "string"
-  }
-}
-```
+### **atividadeFinalizadaController.js**
+Processa atividades completadas:
 
-### Validade e Assinatura
+#### Principais Funções:
+- `createAtividadeFinalizada()` - Finaliza atividades em andamento
+- Calcula pontuação final e porcentagem
+- Move de "em andamento" para "finalizadas"
+- Atualiza estatísticas do usuário
 
-#### `POST /validade`
-**Descrição:** Webhook para atualizar validade via RevenueCat  
-**Autenticação:** ❌ Não requerida  
-**Body:** Payload do RevenueCat
+#### Critérios de Aprovação:
+- **Aprovado**: Porcentagem ≥ 80%
+- **Reprovado**: Porcentagem < 80% (atividade adicionada novamente)
 
-#### `GET /demo/:id/:dias`
-**Descrição:** Atualiza validade demo do usuário  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** 
-- `id` (ObjectId do usuário)
-- `dias` (número de dias)
+## 🛡️ Middleware de Segurança
 
-## 📧 Email (Send Email Routes)
-
-#### `GET /auth/recover/:email`
-**Descrição:** Envia email de recuperação de senha  
-**Autenticação:** ❌ Não requerida  
-**Parâmetros:** `email` (string)
-
-#### `GET /auth/verify-code/:email/:codigo`
-**Descrição:** Verifica código de recuperação  
-**Autenticação:** ❌ Não requerida  
-**Parâmetros:** 
-- `email` (string)
-- `codigo` (string)
-
-## 🎯 Atividades App (Atividade App Routes)
-
-#### `POST /atividadeApp`
-**Descrição:** Cria nova atividade standalone  
-**Autenticação:** ✅ Requerida  
-**Body:** 
-```json
-{
-  "idade": number,
-  "marco": "string",
-  "nomdeDaAtividade": "string",
-  "descicaoDaAtividade": "string",
-  "fotoDaAtividade": "string",
-  "tipoDeAtividade": "string",
-  "exercicios": [...]
-}
-```
-
-#### `GET /atividadeApp`
-**Descrição:** Lista todas as atividades standalone  
-**Autenticação:** ✅ Requerida
-
-#### `GET /atividadeApp/:atividadeId`
-**Descrição:** Busca atividade específica  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `atividadeId` (ObjectId)
-
-#### `PUT /atividadeApp/:atividadeId`
-**Descrição:** Atualiza atividade  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `atividadeId` (ObjectId)  
-**Body:** Dados a serem atualizados
-
-#### `DELETE /atividadeApp/:atividadeId`
-**Descrição:** Remove atividade  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `atividadeId` (ObjectId)
-
-## 🎮 Grupos de Atividades (Grupo Atividades Routes)
-
-#### `POST /grupoatividades`
-**Descrição:** Cria novo grupo de atividades manualmente  
-**Autenticação:** ✅ Requerida  
-**Body:** 
-```json
-{
-  "nomeGrupo": "string",
-  "nivelDaAtividade": number,
-  "imagem": "string",
-  "dominio": ["string"],
-  "descricao": "string",
-  "atividades": [...],
-  "identificador": "string"
-}
-```
-
-#### `POST /grupoatividadesAuto`
-**Descrição:** Cria grupo de atividades automaticamente baseado no perfil do paciente  
-**Autenticação:** ✅ Requerida (Paciente)
-
-#### `GET /grupoatividadesAuto`
-**Descrição:** Lista grupos de atividades criados automaticamente pelo usuário  
-**Autenticação:** ✅ Requerida
-
-#### `GET /grupoatividades`
-**Descrição:** Lista grupos com filtros (query params)  
-**Autenticação:** ❌ Não requerida  
-**Query Params:** `criadorId`, `dominio`
-
-#### `GET /grupoatividades/:id`
-**Descrição:** Busca grupo específico  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `id` (ObjectId)
-
-#### `PUT /grupoatividades/:id`
-**Descrição:** Atualiza grupo completo  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `id` (ObjectId)
-
-#### `PATCH /grupoatividades/:id`
-**Descrição:** Atualiza campos específicos do grupo  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `id` (ObjectId)
-
-#### `DELETE /grupoatividades/:id`
-**Descrição:** Remove grupo  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `id` (ObjectId)
-
-#### `GET /grupos-atividades/nivel`
-**Descrição:** Filtra grupos por nível e outros critérios  
-**Autenticação:** ✅ Requerida  
-**Query Params:** 
-- `nivel` (number)
-- `grupo` (array de strings)
-- `tipoDeAtividades` (string)
-
-#### `PATCH /atividades/:atividadeId/exercicios`
-**Descrição:** Adiciona exercício a uma atividade  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `atividadeId` (ObjectId)
-
-## 🏃 Atividades (Atividade Routes)
-
-#### `POST /grupoatividades/:grupoAtividadeId/atividades`
-**Descrição:** Cria atividade dentro de um grupo  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `grupoAtividadeId` (ObjectId)
-
-#### `GET /atividades/:idGrupoAtividades/:idAtividade`
-**Descrição:** Busca atividade específica dentro de um grupo  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** 
-- `idGrupoAtividades` (ObjectId)
-- `idAtividade` (ObjectId)
-
-#### `PATCH /atividades/:id`
-**Descrição:** Atualiza atividade  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `id` (ObjectId)
-
-#### `DELETE /atividades/:id`
-**Descrição:** Remove atividade  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `id` (ObjectId)
-
-## ⏳ Atividades Em Andamento (Atividade Em Andamento Routes)
-
-#### `POST /grupoatividades/:grupoAtividadeId/atividadesemandamento`
-**Descrição:** Inicia uma atividade (coloca em andamento)  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `grupoAtividadeId` (ObjectId)  
-**Body:** 
-```json
-{
-  "respostas": [...]
-}
-```
-
-#### `GET /atividadesemandamento/:id`
-**Descrição:** Busca atividade em andamento  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `id` (ObjectId)
-
-#### `PATCH /atividadesemandamento/:id`
-**Descrição:** Atualiza atividade em andamento  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `id` (ObjectId)  
-**Body:** 
-```json
-{
-  "novasRespostas": [...]
-}
-```
-
-#### `PATCH /grupos/:grupoId/respostas`
-**Descrição:** Atualiza resposta específica de um exercício  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `grupoId` (ObjectId)  
-**Body:** 
-```json
-{
-  "atividade_id": "ObjectId",
-  "exercicioId": "ObjectId", 
-  "alternativaId": "ObjectId",
-  "isCorreta": boolean,
-  "pontuacao": number,
-  "pontuacaoPossivel": number,
-  "tipoAtividade": "string"
-}
-```
-
-#### `DELETE /atividadesemandamento/:id`
-**Descrição:** Remove atividade em andamento  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `id` (ObjectId)
-
-## ✅ Atividades Finalizadas (Atividade Finalizada Routes)
-
-#### `POST /grupoatividades/:grupoAtividadeId/atividadesfinalizadas`
-**Descrição:** Finaliza uma atividade em andamento  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `grupoAtividadeId` (ObjectId)
-
-#### `GET /atividadesfinalizadas/:id`
-**Descrição:** Busca atividade finalizada  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `id` (ObjectId)
-
-#### `PATCH /atividadesfinalizadas/:id`
-**Descrição:** Atualiza atividade finalizada  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `id` (ObjectId)
-
-#### `DELETE /atividadesfinalizadas/:grupoAtividadesId`
-**Descrição:** Remove atividade finalizada  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** `grupoAtividadesId` (ObjectId)
-
-## 📝 Exercícios (Exercicios Routes)
-
-#### `PATCH /grupoatividades/:grupoAtividadeId/atividades/:atividadeId/exercicios`
-**Descrição:** Adiciona exercício a uma atividade  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** 
-- `grupoAtividadeId` (ObjectId)
-- `atividadeId` (ObjectId)
-
-#### `GET /grupoatividades/:grupoAtividadeId/atividades/:atividadeId/exercicios/:exercicioId`
-**Descrição:** Busca exercício específico  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** 
-- `grupoAtividadeId` (ObjectId)
-- `atividadeId` (ObjectId)
-- `exercicioId` (ObjectId)
-
-#### `PATCH /grupoatividades/:grupoAtividadeId/atividades/:atividadeId/exercicios/:exercicioId`
-**Descrição:** Atualiza exercício  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** 
-- `grupoAtividadeId` (ObjectId)
-- `atividadeId` (ObjectId)
-- `exercicioId` (ObjectId)
-
-#### `DELETE /grupoatividades/:grupoAtividadeId/atividades/:atividadeId/exercicios/:exercicioId`
-**Descrição:** Remove exercício  
-**Autenticação:** ✅ Requerida  
-**Parâmetros:** 
-- `grupoAtividadeId` (ObjectId)
-- `atividadeId` (ObjectId)
-- `exercicioId` (ObjectId)
-
-## 📱 Mural (Mural Routes)
-
-#### `POST /mural`
-**Descrição:** Cria/atualiza mural (remove todos os anteriores)  
-**Autenticação:** ✅ Requerida  
-**Body:** 
-```json
-{
-  "titulo": "string",
-  "conteudo": "string", 
-  "autor": "string"
-}
-```
-**Nota:** Também aceita arquivo de mídia via multipart/form-data
-
-#### `GET /mural`
-**Descrição:** Lista murais  
-**Autenticação:** ✅ Requerida
-
-## 🔄 Atualizações (Atualizacoes Routes)
-
-#### `POST /atualizacoes`
-**Descrição:** Cria nova atualização do app  
-**Autenticação:** ❌ Não requerida  
-**Body:** 
-```json
-{
-  "tituloAtualizacao": "string",
-  "descricaoAtualizacao": "string",
-  "tarefas": [
-    {
-      "tituliDaTarefa": "string",
-      "descricaoTarefa": "string", 
-      "tipoDeTarefa": "string"
+### **checkToken.js**
+```javascript
+function checkToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(" ")[1];
+    
+    if (!token) {
+        return res.status(401).json({ msg: 'Acesso negado' });
     }
-  ]
+    
+    try {
+        const secret = process.env.SECRET;
+        const decoded = jwt.verify(token, secret);
+        req.user = { _id: decoded.id };
+        next();
+    } catch (error) {
+        res.status(400).json({ msg: 'Token inválido' });
+    }
 }
 ```
 
-#### `GET /atualizacoes`
-**Descrição:** Lista todas as atualizações  
-**Autenticação:** ❌ Não requerida
+## 🔧 Funcionalidades Avançadas
 
-#### `PUT /atualizacoes/:id`
-**Descrição:** Edita atualização  
-**Autenticação:** ❌ Não requerida  
-**Parâmetros:** `id` (ObjectId)
+### **Sistema de Moedas**
+- Atualização diária automática no login
+- Recompensas por atividades completadas
+- Controle via `updateUserMoeda()`
 
-#### `DELETE /atualizacoes/:id`
-**Descrição:** Remove atualização  
-**Autenticação:** ❌ Não requerida  
-**Parâmetros:** `id` (ObjectId)
+### **Criação Automática de Atividades**
+- Algoritmo baseado no campo `erros` do usuário
+- Seleção aleatória por categoria de desenvolvimento
+- Reinclusão de atividades com performance baixa
 
-## 📊 Dados App (Dados App Routes)
+### **Upload de Mídia**
+- Integração com Azure Blob Storage
+- Suporte a imagem, vídeo e GIF
+- Sistema de tokens para acesso seguro
 
-#### `POST /dadosApp`
-**Descrição:** Gera e salva dados estatísticos do app  
-**Autenticação:** ❌ Não requerida
+### **Sistema de Validade**
+- Integração com RevenueCat para assinaturas
+- Webhook para atualizações automáticas
+- Controle de período demo
 
-#### `GET /dadosApp`
-**Descrição:** Busca dados estatísticos  
-**Autenticação:** ✅ Requerida
+### **Relatórios e Analytics**
+- Dados estatísticos da aplicação
+- Controle de usuários pagantes vs cadastrados
+- Métricas de receita estimada
 
-## 📁 Upload de Mídia (Upload Midia Routes)
+## 🚀 Instalação e Configuração
 
-#### `POST /midia/post/:id`
-**Descrição:** Faz upload de mídia (imagem/vídeo)  
-**Autenticação:** ❌ Não requerida  
-**Parâmetros:** `id` (identificador único)  
-**Body:** Arquivo via multipart/form-data ou base64 via JSON
+### Pré-requisitos
+- Node.js 16+
+- MongoDB 4.4+
+- Azure Blob Storage (para mídia)
 
-## 📋 Estrutura dos Principais Models
+### Instalação
+```bash
+# Clone o repositório
+git clone [repository-url]
 
-### User
-- `tipoDeConta`: "Admin", "Profissional", "Paciente"
-- `nome`, `email`, `telefone`, `dataDeNascimento`
-- `foto`, `senha`, `ativo`
-- `validade`: data de expiração da assinatura
-- `moeda`: sistema de moedas do usuário
-- `nivel`: nível do paciente
-- `erros`: categorias com dificuldades (socializacao, cognicao, linguagem, autoCuidado, motor)
-- `gruposDeAtividadesEmAndamento`: atividades que o usuário está fazendo
-- `gruposDeAtividadesFinalizadas`: atividades completadas pelo usuário
+# Instale as dependências
+npm install
 
-### GrupoAtividades
-- `nomeGrupo`, `descricao`, `imagem`
-- `nivelDaAtividade`: dificuldade
-- `dominio`: categorias (TEA, etc.)
-- `atividades`: array de atividades
-- `pontuacaoTotalDoGrupo`: soma de todos os pontos possíveis
+# Configure as variáveis de ambiente
+cp .env.example .env
 
-### Atividades
-- `nomdeDaAtividade`, `descicaoDaAtividade`
-- `idade`, `marco`: marco de desenvolvimento
-- `tipoDeAtividade`: categoria da atividade
-- `exercicios`: array de exercícios
+# Inicie o servidor
+npm start
+```
 
-### Exercicios
-- `enunciado`, `exercicio`: pergunta e contexto
-- `alternativas`: opções de resposta
-- `pontuacao`: pontos que vale o exercício
-- `midia`: imagem/vídeo opcional
+### Variáveis de Ambiente
+```bash
+SECRET=your-jwt-secret
+MONGODB_URI=your-mongodb-connection
+AZURE_STORAGE_ACCOUNT=your-azure-account
+AZURE_STORAGE_KEY=your-azure-key
+```
 
----
+## 📊 Fluxos de Dados Principais
 
-## 📌 Notas Importantes
+### **Fluxo de Cadastro e Login**
+```
+1. POST /auth/register → Cadastra usuário
+2. POST /auth/login → Autentica e retorna JWT
+3. Middleware checkToken → Valida token em rotas protegidas
+```
 
-1. **Tokens JWT**: Incluem `id`, `tipoDeConta`, `nivel`, `grupo`, `ativo` e `validade`
-2. **Atividades Automáticas**: Criadas com base no campo `erros` do paciente
-3. **Sistema de Pontuação**: Calculado automaticamente com base nos exercícios
-4. **Validação de Assinatura**: Verificada automaticamente nas rotas protegidas
-5. **Upload de Mídia**: Armazenado no Azure Blob Storage
-6. **Recuperação de Senha**: Via email com código de 6 caracteres
+### **Fluxo de Atividades (Paciente)**
+```
+1. POST /grupoatividadesAuto → Cria grupo personalizado
+2. POST /atividadesemandamento → Inicia sessão
+3. PATCH /grupos/:id/respostas → Atualiza respostas
+4. POST /atividadesfinalizadas → Finaliza e calcula resultados
+```
+
+### **Fluxo de Acompanhamento (Profissional)**
+```
+1. GET /user-ativos-paciente → Lista pacientes vinculados
+2. GET /atividadesfinalizadas → Visualiza histórico
+3. GET /dadosApp → Acessa estatísticas
+```
+
+## 🐛 Depuração e Manutenção
+
+### **Logs Importantes**
+- Todos os controllers têm console.log detalhado
+- Erros são logados com contexto completo
+- Validações incluem mensagens específicas
+
+### **Pontos de Atenção**
+1. **Validação de ObjectId**: Sempre verificar se IDs são válidos
+2. **População de dados**: Usar `.populate()` para relacionamentos
+3. **Middleware de autenticação**: Verificar token em rotas protegidas
+4. **Cálculo de pontuação**: Validar exercícios antes de calcular totais
+
+### **Testes Recomendados**
+- Autenticação com tokens válidos/inválidos
+- Criação de atividades com dados completos/incompletos
+- Fluxo completo: criação → progresso → finalização
+- Permissões por tipo de usuário
+
+
+**Desenvolvido com ❤️ pela equipe Stimular**
+
+*Para mais informações técnicas, consulte a documentação da API ou entre em contato com a equipe de desenvolvimento.*
